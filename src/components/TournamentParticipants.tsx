@@ -60,10 +60,10 @@ export default function TournamentParticipants({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-emerald-950">
+        <h2 className="text-lg font-semibold text-ink">
           Partecipanti torneo attivo
         </h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-ink-muted">
           Stand-by e iscrizioni tardive si gestiscono qui.
         </p>
       </div>
@@ -75,8 +75,8 @@ export default function TournamentParticipants({
       )}
 
       {available.length > 0 && (
-        <div className="rounded-xl border border-emerald-200 bg-white p-4 shadow-sm">
-          <p className="mb-2 text-sm font-medium text-gray-700">
+        <div className="rounded-xl border border-border-accent bg-surface p-4 shadow-sm">
+          <p className="mb-2 text-sm font-medium text-ink-secondary">
             Iscrivi nuovo giocatore al torneo (ultima posizione)
           </p>
           <div className="flex flex-wrap gap-2">
@@ -85,7 +85,7 @@ export default function TournamentParticipants({
                 key={p.id}
                 onClick={() => addToTournament(p.id)}
                 disabled={loading}
-                className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
+                className="rounded-lg border border-border-accent bg-accent-subtle px-3 py-1.5 text-sm text-accent-dark hover:bg-accent-muted disabled:opacity-50"
               >
                 + {p.name}
               </button>
@@ -94,9 +94,9 @@ export default function TournamentParticipants({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-border-accent bg-surface shadow-sm">
         <table className="w-full text-left text-sm">
-          <thead className="bg-emerald-50 text-emerald-900">
+          <thead className="bg-dark text-on-dark">
             <tr>
               <th className="px-4 py-3 font-semibold">#</th>
               <th className="px-4 py-3 font-semibold">Nome</th>
@@ -106,7 +106,7 @@ export default function TournamentParticipants({
           </thead>
           <tbody>
             {entries.map((e) => (
-              <tr key={e.player_id} className="border-t border-emerald-100">
+              <tr key={e.player_id} className="border-t border-border">
                 <td className="px-4 py-3 font-mono">{e.position}</td>
                 <td className="px-4 py-3 font-medium">{e.name}</td>
                 <td className="px-4 py-3 capitalize">{e.status}</td>

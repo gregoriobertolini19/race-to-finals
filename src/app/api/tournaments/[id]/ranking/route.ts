@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { cancelExpiredChallenges } from "@/lib/challenges";
 import {
+  attachMatchStatsToEntries,
+  getTournamentMatchStats,
+} from "@/lib/match-stats";
+import {
   getTournamentEntries,
   requireTournament,
 } from "@/lib/tournaments";
@@ -23,7 +27,10 @@ export async function GET(
 
   await cancelExpiredChallenges(tournamentId);
   const weekly = await maybeRunWeeklyUpdate(tournamentId);
-  const entries = await getTournamentEntries(tournamentId);
+  const entries = attachMatchStatsToEntries(
+    await getTournamentEntries(tournamentId),
+    await getTournamentMatchStats(tournamentId)
+  );
 
   return NextResponse.json({
     tournament,

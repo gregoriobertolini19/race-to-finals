@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import {
+  attachMatchStatsToEntries,
+  getTournamentMatchStats,
+} from "@/lib/match-stats";
 import { applyPendingRankingUpdates } from "@/lib/ranking";
 import {
   getTournamentEntries,
@@ -22,7 +26,10 @@ export async function POST(
     }
 
     const result = await applyPendingRankingUpdates(tournamentId);
-    const entries = await getTournamentEntries(tournamentId);
+    const entries = attachMatchStatsToEntries(
+      await getTournamentEntries(tournamentId),
+      await getTournamentMatchStats(tournamentId)
+    );
 
     return NextResponse.json({
       ...result,

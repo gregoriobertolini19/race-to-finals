@@ -25,9 +25,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" className={`${geistSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-emerald-50">
+      <body className="flex min-h-full flex-col bg-surface-alt text-ink">
         <div className="flex-1">{children}</div>
-        <footer className="border-t border-emerald-200 bg-white py-4 text-center text-xs text-gray-500">
+        <footer className="border-t border-dark-elevated bg-dark py-4 text-center text-xs text-on-dark-muted">
           Race to Finals · Sporting Borgo Bagnolo
         </footer>
       </body>

@@ -37,6 +37,9 @@ export interface TournamentEntry {
   standby_since: string | null;
   name: string;
   phone?: string | null;
+  matches_played?: number;
+  wins?: number;
+  losses?: number;
 }
 
 export interface Challenge {

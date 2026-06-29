@@ -10,7 +10,7 @@ const statusLabels: Record<TournamentEntry["status"], string> = {
 };
 
 const statusColors: Record<TournamentEntry["status"], string> = {
-  active: "bg-emerald-100 text-emerald-800",
+  active: "bg-accent-muted text-accent-dark",
   standby: "bg-amber-100 text-amber-800",
   in_challenge: "bg-sky-100 text-sky-800",
 };
@@ -22,13 +22,16 @@ interface Props {
 
 export default function RankingTable({ entries, highlightTop = 8 }: Props) {
   return (
-    <div className="overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-xl border border-border-accent bg-surface shadow-sm">
       <table className="w-full text-left text-sm">
-        <thead className="bg-emerald-50 text-emerald-900">
+        <thead className="bg-dark text-on-dark">
           <tr>
             <th className="px-4 py-3 font-semibold">Pos.</th>
             <th className="px-4 py-3 font-semibold">Giocatore</th>
             <th className="px-4 py-3 font-semibold">Telefono</th>
+            <th className="px-3 py-3 text-center font-semibold">Partite</th>
+            <th className="px-3 py-3 text-center font-semibold">Vittorie</th>
+            <th className="px-3 py-3 text-center font-semibold">Sconfitte</th>
             <th className="px-4 py-3 font-semibold">Stato</th>
             <th className="px-4 py-3 font-semibold">Finals</th>
           </tr>
@@ -39,29 +42,38 @@ export default function RankingTable({ entries, highlightTop = 8 }: Props) {
             return (
               <tr
                 key={entry.player_id}
-                className={`border-t border-emerald-100 ${
-                  qualifies ? "bg-emerald-50/60" : ""
+                className={`border-t border-border ${
+                  qualifies ? "bg-accent-subtle/60" : ""
                 }`}
               >
-                <td className="px-4 py-3 font-mono font-bold text-emerald-900">
+                <td className="px-4 py-3 font-mono font-bold text-ink">
                   {entry.position}
                 </td>
-                <td className="px-4 py-3 font-medium text-gray-900">
+                <td className="px-4 py-3 font-medium text-ink">
                   {entry.name}
                 </td>
                 <td className="px-4 py-3">
                   {phoneHref(entry.phone) ? (
                     <a
                       href={phoneHref(entry.phone)!}
-                      className="text-emerald-700 hover:underline"
+                      className="text-accent-dark hover:underline"
                     >
                       {formatPhoneDisplay(entry.phone)}
                     </a>
                   ) : (
-                    <span className="text-gray-400">
+                    <span className="text-ink-muted">
                       {formatPhoneDisplay(entry.phone)}
                     </span>
                   )}
+                </td>
+                <td className="px-3 py-3 text-center font-mono text-ink-secondary">
+                  {entry.matches_played ?? 0}
+                </td>
+                <td className="px-3 py-3 text-center font-mono font-medium text-ink">
+                  {entry.wins ?? 0}
+                </td>
+                <td className="px-3 py-3 text-center font-mono font-medium text-ink">
+                  {entry.losses ?? 0}
                 </td>
                 <td className="px-4 py-3">
                   <span
@@ -72,11 +84,11 @@ export default function RankingTable({ entries, highlightTop = 8 }: Props) {
                 </td>
                 <td className="px-4 py-3">
                   {qualifies && entry.status !== "standby" ? (
-                    <span className="text-xs font-semibold text-emerald-700">
+                    <span className="text-xs font-semibold text-accent-dark">
                       Qualificato
                     </span>
                   ) : (
-                    <span className="text-xs text-gray-400">—</span>
+                    <span className="text-xs text-ink-muted">—</span>
                   )}
                 </td>
               </tr>

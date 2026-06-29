@@ -116,13 +116,13 @@ export default function TournamentSetup({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link href="/tornei" className="text-sm text-emerald-700 hover:underline">
+          <Link href="/tornei" className="text-sm text-accent-dark hover:underline">
             ← Tornei
           </Link>
-          <h1 className="mt-1 text-2xl font-bold text-emerald-950">
+          <h1 className="mt-1 text-2xl font-bold text-ink">
             {tournament.name}
           </h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-ink-muted">
             Stato:{" "}
             <span className="font-medium">
               {isDraft && "Bozza"}
@@ -137,7 +137,7 @@ export default function TournamentSetup({
           <button
             onClick={startTournament}
             disabled={loading || localEntries.length < 2}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-50"
           >
             Avvia torneo
           </button>
@@ -149,7 +149,7 @@ export default function TournamentSetup({
               if (confirm("Concludere il torneo?")) patch("complete");
             }}
             disabled={loading}
-            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-ink-secondary hover:bg-surface-alt disabled:opacity-50"
           >
             Concludi torneo
           </button>
@@ -163,17 +163,17 @@ export default function TournamentSetup({
       )}
 
       {isDraft && (
-        <div className="rounded-xl border border-emerald-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-lg font-semibold text-emerald-950">
+        <div className="rounded-xl border border-border-accent bg-surface p-5 shadow-sm">
+          <h2 className="mb-3 text-lg font-semibold text-ink">
             Seleziona giocatori
           </h2>
-          <p className="mb-4 text-sm text-gray-600">
+          <p className="mb-4 text-sm text-ink-muted">
             Scegli dall&apos;anagrafica chi partecipa, poi imposta la classifica
             iniziale trascinando le righe o cambiando il numero di posizione.
           </p>
 
           {availablePlayers.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-ink-muted">
               {allPlayers.length === 0
                 ? "Aggiungi giocatori in Anagrafica prima di creare il torneo."
                 : "Tutti i giocatori sono già iscritti."}
@@ -186,7 +186,7 @@ export default function TournamentSetup({
                   type="button"
                   onClick={() => addPlayer(p.id)}
                   disabled={loading}
-                  className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
+                  className="rounded-lg border border-border-accent bg-accent-subtle px-3 py-1.5 text-sm font-medium text-accent-dark hover:bg-accent-muted disabled:opacity-50"
                 >
                   + {p.name}
                 </button>
@@ -196,14 +196,14 @@ export default function TournamentSetup({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-border-accent bg-surface shadow-sm">
         {isDraft && localEntries.length > 0 && (
-          <p className="border-b border-emerald-100 bg-emerald-50/60 px-4 py-2 text-xs text-emerald-800">
+          <p className="border-b border-border bg-accent-subtle/60 px-4 py-2 text-xs text-accent-dark">
             Trascina le righe oppure modifica il numero di posizione
           </p>
         )}
         <table className="w-full text-left text-sm">
-          <thead className="bg-emerald-50 text-emerald-900">
+          <thead className="bg-dark text-on-dark">
             <tr>
               {isDraft && <th className="w-10 px-2 py-3" aria-label="Trascina" />}
               <th className="px-4 py-3 font-semibold">Pos.</th>
@@ -218,7 +218,7 @@ export default function TournamentSetup({
               <tr>
                 <td
                   colSpan={isDraft ? 4 : 2}
-                  className="px-4 py-8 text-center text-gray-500"
+                  className="px-4 py-8 text-center text-ink-muted"
                 >
                   Nessun giocatore iscritto
                 </td>
@@ -234,12 +234,12 @@ export default function TournamentSetup({
                     if (isDraft) event.preventDefault();
                   }}
                   onDrop={() => handleDrop(e.player_id)}
-                  className={`border-t border-emerald-100 ${
-                    draggedId === e.player_id ? "bg-emerald-100/80" : ""
+                  className={`border-t border-border ${
+                    draggedId === e.player_id ? "bg-accent-muted/80" : ""
                   } ${isDraft ? "cursor-grab active:cursor-grabbing" : ""}`}
                 >
                   {isDraft && (
-                    <td className="px-2 py-3 text-center text-gray-400">⋮⋮</td>
+                    <td className="px-2 py-3 text-center text-ink-muted">⋮⋮</td>
                   )}
                   <td className="px-4 py-3">
                     {isDraft ? (
@@ -256,7 +256,7 @@ export default function TournamentSetup({
                             moveToPosition(e.player_id, value);
                           }
                         }}
-                        className="w-14 rounded border border-gray-300 px-2 py-1 text-center font-mono text-sm focus:border-emerald-500 focus:outline-none"
+                        className="w-14 rounded border border-border px-2 py-1 text-center font-mono text-sm focus:border-accent focus:outline-none"
                       />
                     ) : (
                       <span className="font-mono font-bold">{e.position}</span>
@@ -283,7 +283,7 @@ export default function TournamentSetup({
       </div>
 
       {isActive && (
-        <p className="text-sm text-emerald-700">
+        <p className="text-sm text-accent-dark">
           Torneo in corso. Vai alla{" "}
           <Link
             href={`/tornei/${tournament.id}`}

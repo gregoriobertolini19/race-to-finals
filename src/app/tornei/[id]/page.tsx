@@ -73,7 +73,7 @@ export default function TournamentRankingPage() {
     return (
       <>
         <Nav />
-        <p className="text-gray-500">Caricamento...</p>
+        <p className="text-ink-muted">Caricamento...</p>
       </>
     );
   }
@@ -86,8 +86,8 @@ export default function TournamentRankingPage() {
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-emerald-950">Classifica</h1>
-            <p className="mt-1 text-sm text-gray-600">
+            <h1 className="text-2xl font-bold text-ink">Classifica</h1>
+            <p className="mt-1 text-sm text-ink-muted">
               {tournament.name} · Top 8 alle Finals
               {isActive && " · Aggiornamento ogni lunedì"}
             </p>
@@ -96,14 +96,14 @@ export default function TournamentRankingPage() {
             <div className="flex gap-2">
               <Link
                 href={`/tornei/${id}/sfide`}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover"
               >
                 Vai alle sfide
               </Link>
               <button
                 onClick={applyRanking}
                 disabled={applying}
-                className="rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-medium text-emerald-800 shadow-sm hover:bg-emerald-50 disabled:opacity-50"
+                className="rounded-lg border border-border-accent bg-surface px-4 py-2 text-sm font-medium text-accent-dark shadow-sm hover:bg-accent-subtle disabled:opacity-50"
               >
                 {applying ? "Aggiornamento..." : "Applica classifica"}
               </button>
@@ -118,7 +118,7 @@ export default function TournamentRankingPage() {
         )}
 
         {weeklyMessage && (
-          <div className="rounded-lg border border-emerald-300 bg-emerald-100 px-4 py-3 text-sm text-emerald-900">
+          <div className="rounded-lg border border-border-accent bg-accent-muted px-4 py-3 text-sm text-ink">
             {weeklyMessage}
           </div>
         )}

@@ -13,8 +13,8 @@ const statusLabel: Record<Tournament["status"], string> = {
 };
 
 const statusColor: Record<Tournament["status"], string> = {
-  draft: "bg-gray-100 text-gray-700",
-  active: "bg-emerald-100 text-emerald-800",
+  draft: "bg-surface-alt text-ink-secondary",
+  active: "bg-accent-muted text-accent-dark",
   completed: "bg-slate-100 text-slate-600",
 };
 
@@ -90,14 +90,14 @@ export default function TorneiPage() {
       <Nav />
       <main className="mx-auto w-full max-w-5xl flex-1 space-y-8 px-4 py-8">
         <div>
-          <h1 className="text-2xl font-bold text-emerald-950">Gestione tornei</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-ink">Gestione tornei</h1>
+          <p className="mt-1 text-sm text-ink-muted">
             Crea edizioni, configura i partecipanti e avvia i campionati
           </p>
         </div>
 
         {activeList.length > 0 && (
-          <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          <div className="rounded-lg border border-border-accent bg-accent-subtle px-4 py-3 text-sm text-ink">
             {activeList.length === 1 ? (
               <>
                 Torneo in corso:{" "}
@@ -121,14 +121,14 @@ export default function TorneiPage() {
 
         <form
           onSubmit={createTournament}
-          className="rounded-xl border border-emerald-200 bg-white p-5 shadow-sm"
+          className="rounded-xl border border-border-accent bg-surface p-5 shadow-sm"
         >
-          <h2 className="mb-4 text-lg font-semibold text-emerald-950">
+          <h2 className="mb-4 text-lg font-semibold text-ink">
             Nuovo torneo
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-ink-secondary">
                 Nome torneo
               </label>
               <input
@@ -136,19 +136,19 @@ export default function TorneiPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="es. Race to Finals 2026"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
                 required
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-ink-secondary">
                 Data fine campionato
               </label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
               />
             </div>
           </div>
@@ -160,29 +160,29 @@ export default function TorneiPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-4 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+            className="mt-4 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-50"
           >
             {loading ? "Creazione..." : "Crea torneo"}
           </button>
         </form>
 
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-emerald-950">Tutti i tornei</h2>
+          <h2 className="text-lg font-semibold text-ink">Tutti i tornei</h2>
           {tournaments.length === 0 ? (
-            <p className="text-sm text-gray-500">Nessun torneo creato</p>
+            <p className="text-sm text-ink-muted">Nessun torneo creato</p>
           ) : (
             tournaments.map((t) => (
               <div
                 key={t.id}
-                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-white shadow-sm transition hover:border-emerald-400"
+                className="flex items-center gap-2 rounded-xl border border-border-accent bg-surface shadow-sm transition hover:border-accent"
               >
                 <Link
                   href={tournamentHref(t)}
                   className="flex min-w-0 flex-1 items-center justify-between px-4 py-3"
                 >
                   <div>
-                    <p className="font-medium text-gray-900">{t.name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="font-medium text-ink">{t.name}</p>
+                    <p className="text-xs text-ink-muted">
                       {t.player_count ?? 0} giocatori
                       {t.end_date && ` · Fine ${t.end_date}`}
                     </p>

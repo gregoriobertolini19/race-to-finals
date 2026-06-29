@@ -38,18 +38,20 @@ export default function Nav({ tournament }: Props) {
     : [];
 
   return (
-    <header className="border-b border-emerald-900/20 bg-emerald-950 text-white">
+    <header className="border-b border-dark-elevated bg-dark text-on-dark">
       <div className="mx-auto max-w-5xl px-4 py-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-lg font-bold text-emerald-950">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-lg font-bold text-white">
               R
             </div>
             <div>
-              <p className="text-sm font-semibold tracking-wide text-emerald-300">
+              <p className="text-sm font-semibold tracking-wide text-on-dark-muted">
                 Sporting Borgo Bagnolo
               </p>
-              <h1 className="text-lg font-bold leading-tight">Race to Finals</h1>
+              <h1 className="text-lg font-bold leading-tight text-on-dark">
+                Race to Finals
+              </h1>
             </div>
           </Link>
           <nav className="flex flex-wrap gap-1">
@@ -59,8 +61,8 @@ export default function Nav({ tournament }: Props) {
                 href={link.href}
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
                   pathname === link.href
-                    ? "bg-emerald-800 text-white"
-                    : "text-emerald-100 hover:bg-emerald-800 hover:text-white"
+                    ? "bg-accent text-white"
+                    : "text-on-dark-muted hover:bg-dark-elevated hover:text-on-dark"
                 }`}
               >
                 {link.label}
@@ -70,10 +72,10 @@ export default function Nav({ tournament }: Props) {
         </div>
 
         {tournament && tournamentId && (
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-emerald-800/50 pt-3">
-            <p className="text-sm text-emerald-200">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-dark-elevated pt-3">
+            <p className="text-sm text-on-dark-muted">
               Torneo:{" "}
-              <span className="font-semibold text-white">{tournament.name}</span>
+              <span className="font-semibold text-on-dark">{tournament.name}</span>
             </p>
             <nav className="flex flex-wrap gap-1">
               {tournamentLinks.map((link) => (
@@ -82,8 +84,8 @@ export default function Nav({ tournament }: Props) {
                   href={link.href}
                   className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                     pathname === link.href
-                      ? "bg-emerald-600 text-white"
-                      : "text-emerald-100 hover:bg-emerald-800"
+                      ? "bg-accent text-white"
+                      : "text-on-dark-muted hover:bg-dark-elevated hover:text-on-dark"
                   }`}
                 >
                   {link.label}
@@ -91,7 +93,7 @@ export default function Nav({ tournament }: Props) {
               ))}
               <Link
                 href="/"
-                className="rounded-lg px-3 py-1.5 text-sm text-emerald-300 hover:bg-emerald-800 hover:text-white"
+                className="rounded-lg px-3 py-1.5 text-sm text-on-dark-muted hover:bg-dark-elevated hover:text-on-dark"
               >
                 Cambia torneo
               </Link>

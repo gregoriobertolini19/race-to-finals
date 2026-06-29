@@ -43,7 +43,7 @@ export default function TournamentSfidePage() {
     return (
       <>
         <Nav />
-        <p className="px-4 py-8 text-gray-500">Caricamento...</p>
+        <p className="px-4 py-8 text-ink-muted">Caricamento...</p>
       </>
     );
   }
@@ -53,8 +53,8 @@ export default function TournamentSfidePage() {
       <Nav tournament={tournament} />
       <div className="mx-auto max-w-5xl space-y-8 px-4 py-8">
         <div>
-          <h1 className="text-2xl font-bold text-emerald-950">Sfide</h1>
-          <p className="mt-1 text-sm text-gray-600">{tournament.name}</p>
+          <h1 className="text-2xl font-bold text-ink">Sfide</h1>
+          <p className="mt-1 text-sm text-ink-muted">{tournament.name}</p>
         </div>
 
         <ChallengeForm
@@ -68,8 +68,8 @@ export default function TournamentSfidePage() {
           onUpdated={load}
         />
 
-        <p className="text-center text-sm text-gray-500">
-          <Link href={`/tornei/${id}`} className="text-emerald-700 hover:underline">
+        <p className="text-center text-sm text-ink-muted">
+          <Link href={`/tornei/${id}`} className="text-accent-dark hover:underline">
             ← Torna alla classifica
           </Link>
         </p>

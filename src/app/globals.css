@@ -1,19 +1,54 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f0fdf4;
-  --foreground: #14532d;
+  --accent: #649368;
+  --accent-hover: #547a58;
+  --accent-dark: #3d5c41;
+  --accent-muted: #dce8dd;
+  --accent-subtle: #f3f6f3;
+  --ink: #111111;
+  --ink-secondary: #3d3d3d;
+  --ink-muted: #6b6b6b;
+  --surface: #ffffff;
+  --surface-alt: #f5f5f5;
+  --dark: #111111;
+  --dark-elevated: #1c1c1c;
+  --on-dark: #fafafa;
+  --on-dark-muted: #c9c9c9;
+  --border: #e5e5e5;
+  --border-accent: #c5d5c6;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--surface-alt);
+  --color-foreground: var(--ink);
+  --color-accent: #649368;
+  --color-accent-hover: #547a58;
+  --color-accent-dark: #3d5c41;
+  --color-accent-muted: #dce8dd;
+  --color-accent-subtle: #f3f6f3;
+  --color-ink: #111111;
+  --color-ink-secondary: #3d3d3d;
+  --color-ink-muted: #6b6b6b;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f5f5f5;
+  --color-dark: #111111;
+  --color-dark-elevated: #1c1c1c;
+  --color-on-dark: #fafafa;
+  --color-on-dark-muted: #c9c9c9;
+  --color-border: #e5e5e5;
+  --color-border-accent: #c5d5c6;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: var(--background);
-  color: #1f2937;
+  background: var(--surface-alt);
+  color: var(--ink);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, white);
+  color: var(--ink);
 }

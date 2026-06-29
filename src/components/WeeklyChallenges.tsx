@@ -94,7 +94,7 @@ export default function WeeklyChallenges({
 
   if (challenges.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500">
+      <p className="rounded-xl border border-dashed border-border bg-surface-alt px-4 py-10 text-center text-sm text-ink-muted">
         Nessuna sfida ancora. Lancia la prima sfida qui sopra.
       </p>
     );
@@ -103,10 +103,10 @@ export default function WeeklyChallenges({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-emerald-950">
+        <h2 className="text-lg font-semibold text-ink">
           Calendario settimanale
         </h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-ink-muted">
           Calendario per settimana di gioco (Settimana 1, 2, 3…) dalla data di
           avvio del torneo. La classifica si aggiorna ogni lunedì.
         </p>
@@ -121,18 +121,18 @@ export default function WeeklyChallenges({
       {weeks.map((week) => (
         <section
           key={week.weekStart}
-          className="overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-sm"
+          className="overflow-hidden rounded-xl border border-border-accent bg-surface shadow-sm"
         >
-          <header className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-100 bg-emerald-50 px-4 py-3">
+          <header className="flex flex-wrap items-center justify-between gap-2 border-b border-dark-elevated bg-dark px-4 py-3 text-on-dark">
             <div>
-              <h3 className="text-lg font-bold text-emerald-950">
+              <h3 className="text-lg font-bold text-on-dark">
                 {formatWeekTitle(week.weekNum)}
               </h3>
-              <p className="text-sm text-gray-600">{week.label}</p>
+              <p className="text-sm text-on-dark-muted">{week.label}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {week.isCurrent && (
-                <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 text-xs font-medium text-white">
+                <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-white">
                   In corso
                 </span>
               )}
@@ -142,14 +142,14 @@ export default function WeeklyChallenges({
                 </span>
               )}
               {week.completedCount > 0 && (
-                <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
+                <span className="rounded-full bg-accent-muted px-2.5 py-0.5 text-xs font-medium text-accent-dark">
                   {week.completedCount} concluse
                 </span>
               )}
             </div>
           </header>
 
-          <ul className="divide-y divide-emerald-50">
+          <ul className="divide-y divide-border">
             {week.challenges.map((c) => (
               <li key={c.id} className="px-4 py-3">
                 {c.status === "completed" ? (
@@ -174,11 +174,11 @@ export default function WeeklyChallenges({
 
 function MatchTitle({ c }: { c: Challenge }) {
   return (
-    <p className="font-medium text-gray-900">
-      <span className="text-gray-500">#{c.challenger_position}</span>{" "}
+    <p className="font-medium text-ink">
+      <span className="text-ink-muted">#{c.challenger_position}</span>{" "}
       {c.challenger_name}{" "}
-      <span className="text-gray-400">vs</span>{" "}
-      <span className="text-gray-500">#{c.challenged_position}</span>{" "}
+      <span className="text-ink-muted">vs</span>{" "}
+      <span className="text-ink-muted">#{c.challenged_position}</span>{" "}
       {c.challenged_name}
     </p>
   );
@@ -244,14 +244,14 @@ function ActiveRow({
         </span>
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-        <p className="mb-3 text-xs font-medium text-gray-600">
+      <div className="rounded-lg border border-border bg-surface-alt p-3">
+        <p className="mb-3 text-xs font-medium text-ink-muted">
           Inserisci i game vinti (es. 6-4, 7-5). Il vincitore viene calcolato
           automaticamente.
         </p>
         <div className="space-y-2">
           <label className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
+            <span className="min-w-0 flex-1 text-sm font-medium text-ink">
               {c.challenger_name}
             </span>
             <input
@@ -261,11 +261,11 @@ function ActiveRow({
               placeholder="0"
               value={challengerScore}
               onChange={(e) => setChallengerScore(e.target.value)}
-              className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-center text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-20 rounded-lg border border-border bg-surface px-3 py-1.5 text-center text-sm focus:border-accent focus:outline-none"
             />
           </label>
           <label className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
+            <span className="min-w-0 flex-1 text-sm font-medium text-ink">
               {c.challenged_name}
             </span>
             <input
@@ -275,7 +275,7 @@ function ActiveRow({
               placeholder="0"
               value={challengedScore}
               onChange={(e) => setChallengedScore(e.target.value)}
-              className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-center text-sm focus:border-emerald-500 focus:outline-none"
+              className="w-20 rounded-lg border border-border bg-surface px-3 py-1.5 text-center text-sm focus:border-accent focus:outline-none"
             />
           </label>
         </div>
@@ -286,7 +286,7 @@ function ActiveRow({
           type="button"
           disabled={!canSubmit}
           onClick={handleConfirm}
-          className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="mt-3 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-50"
         >
           {loading ? "Salvo..." : "Conferma risultato"}
         </button>
@@ -305,13 +305,13 @@ function CompletedRow({ challenge: c }: { challenge: Challenge }) {
     <div className="flex flex-wrap items-start justify-between gap-2">
       <div>
         <MatchTitle c={c} />
-        <p className="mt-1 text-sm text-emerald-800">
+        <p className="mt-1 text-sm text-accent-dark">
           <span className="font-semibold">{winnerName}</span> vince
           {c.score && (
-            <span className="font-mono text-emerald-900"> {c.score}</span>
+            <span className="font-mono text-ink"> {c.score}</span>
           )}
           {c.completed_at && (
-            <span className="text-gray-500">
+            <span className="text-ink-muted">
               {" "}
               · {new Date(c.completed_at).toLocaleDateString("it-IT")}
             </span>
@@ -319,7 +319,7 @@ function CompletedRow({ challenge: c }: { challenge: Challenge }) {
         </p>
       </div>
       {c.ranking_applied ? (
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+        <span className="rounded-full bg-surface-alt px-2 py-0.5 text-xs text-ink-muted">
           In classifica
         </span>
       ) : (
@@ -335,7 +335,7 @@ function CancelledRow({ challenge: c }: { challenge: Challenge }) {
   return (
     <div className="opacity-60">
       <MatchTitle c={c} />
-      <p className="mt-0.5 text-xs text-gray-500">
+      <p className="mt-0.5 text-xs text-ink-muted">
         Annullata (non giocata entro 14 giorni)
       </p>
     </div>

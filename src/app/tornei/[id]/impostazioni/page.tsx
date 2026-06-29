@@ -38,7 +38,7 @@ export default function TournamentSetupPage() {
     return (
       <>
         <Nav />
-        <p className="px-4 py-8 text-gray-500">Caricamento...</p>
+        <p className="px-4 py-8 text-ink-muted">Caricamento...</p>
       </>
     );
   }

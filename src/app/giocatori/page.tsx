@@ -59,8 +59,8 @@ export default function GiocatoriPage() {
       <Nav />
       <main className="mx-auto w-full max-w-5xl flex-1 space-y-10 px-4 py-8">
         <div>
-          <h1 className="text-2xl font-bold text-emerald-950">Anagrafica</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-ink">Anagrafica</h1>
+          <p className="mt-1 text-sm text-ink-muted">
             Giocatori permanenti del club — restano nel database tra un torneo e
             l&apos;altro
           </p>
@@ -72,13 +72,13 @@ export default function GiocatoriPage() {
           <div className="space-y-4">
             {activeTournaments.length > 1 && (
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-ink-secondary">
                   Torneo per gestione partecipanti
                 </label>
                 <select
                   value={selectedTournamentId}
                   onChange={(e) => setSelectedTournamentId(e.target.value)}
-                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                  className="rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
                 >
                   <option value="">Seleziona torneo...</option>
                   {activeTournaments.map((t) => (

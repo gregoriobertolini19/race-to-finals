@@ -74,10 +74,10 @@ export default function ChallengeForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-xl border border-emerald-200 bg-white p-5 shadow-sm"
+      className="rounded-xl border border-border-accent bg-surface p-5 shadow-sm"
     >
-      <h2 className="mb-4 text-lg font-semibold text-emerald-950">Nuova sfida</h2>
-      <p className="mb-4 text-sm text-gray-600">
+      <h2 className="mb-4 text-lg font-semibold text-ink">Nuova sfida</h2>
+      <p className="mb-4 text-sm text-ink-muted">
         Lo sfidato accetta automaticamente. Indica la data di gioco: la sfida
         entrerà nel calendario di quella settimana. La partita va giocata entro
         2 settimane dalla lancio.
@@ -85,13 +85,13 @@ export default function ChallengeForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-sm font-medium text-ink-secondary">
             Sfidante
           </label>
           <select
             value={challengerId}
             onChange={(e) => loadOpponents(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             required
           >
             <option value="">Seleziona...</option>
@@ -104,13 +104,13 @@ export default function ChallengeForm({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-sm font-medium text-ink-secondary">
             Sfidato (±5 posizioni)
           </label>
           <select
             value={challengedId}
             onChange={(e) => setChallengedId(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             required
             disabled={!challengerId}
           >
@@ -125,19 +125,19 @@ export default function ChallengeForm({
         </div>
 
         {selectedOpponent && (
-          <div className="sm:col-span-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm">
-            <p className="font-medium text-emerald-950">
+          <div className="sm:col-span-2 rounded-lg border border-border-accent bg-accent-subtle px-4 py-3 text-sm">
+            <p className="font-medium text-ink">
               Contatta {selectedOpponent.name}
             </p>
             {phoneHref(selectedOpponent.phone) ? (
               <a
                 href={phoneHref(selectedOpponent.phone)!}
-                className="mt-1 inline-block font-semibold text-emerald-700 hover:underline"
+                className="mt-1 inline-block font-semibold text-accent-dark hover:underline"
               >
                 {formatPhoneDisplay(selectedOpponent.phone)}
               </a>
             ) : (
-              <p className="mt-1 text-gray-600">
+              <p className="mt-1 text-ink-muted">
                 Nessun telefono in anagrafica — chiedi a {selectedOpponent.name}{" "}
                 di aggiornarlo in Giocatori.
               </p>
@@ -146,17 +146,17 @@ export default function ChallengeForm({
         )}
 
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-sm font-medium text-ink-secondary">
             Data partita
           </label>
           <input
             type="date"
             value={scheduledAt}
             onChange={(e) => setScheduledAt(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             required
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-ink-muted">
             La sfida verrà inserita nella settimana di gioco corrispondente
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function ChallengeForm({
       <button
         type="submit"
         disabled={loading}
-        className="mt-4 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+        className="mt-4 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:opacity-50"
       >
         {loading ? "Invio..." : "Lancia sfida"}
       </button>
