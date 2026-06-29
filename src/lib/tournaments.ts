@@ -137,14 +137,12 @@ export async function setTournamentOrder(
   }
 
   const sql = getSql();
-  await sql.begin(async (tx) => {
-    for (let i = 0; i < orderedPlayerIds.length; i++) {
-      await tx`
-        UPDATE tournament_entries SET position = ${i + 1}
-        WHERE tournament_id = ${tournamentId} AND player_id = ${orderedPlayerIds[i]}
-      `;
-    }
-  });
+  for (let i = 0; i < orderedPlayerIds.length; i++) {
+    await sql`
+      UPDATE tournament_entries SET position = ${i + 1}
+      WHERE tournament_id = ${tournamentId} AND player_id = ${orderedPlayerIds[i]}
+    `;
+  }
 }
 
 async function reorderTournamentEntries(

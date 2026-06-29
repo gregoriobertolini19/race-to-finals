@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Player, Tournament, TournamentEntry } from "@/lib/types";
@@ -21,8 +21,14 @@ export default function TournamentSetup({
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [localEntries, setLocalEntries] = useState(entries);
+  const [draggedId, setDraggedId] = useState<number | null>(null);
 
-  const enrolledIds = new Set(entries.map((e) => e.player_id));
+  useEffect(() => {
+    setLocalEntries(entries);
+  }, [entries]);
+
+  const enrolledIds = new Set(localEntries.map((e) => e.player_id));
   const availablePlayers = allPlayers.filter((p) => !enrolledIds.has(p.id));
 
   async function patch(action: string, payload: Record<string, unknown> = {}) {
@@ -56,14 +62,45 @@ export default function TournamentSetup({
     patch("removePlayer", { playerId });
   }
 
-  function movePlayer(playerId: number, direction: "up" | "down") {
-    const ordered = entries.map((e) => e.player_id);
-    const idx = ordered.indexOf(playerId);
-    if (idx < 0) return;
-    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= ordered.length) return;
-    [ordered[idx], ordered[swapIdx]] = [ordered[swapIdx], ordered[idx]];
-    patch("setOrder", { orderedPlayerIds: ordered });
+  function saveOrder(orderedPlayerIds: number[]) {
+    const reordered = orderedPlayerIds
+      .map((id, index) => {
+        const entry = localEntries.find((e) => e.player_id === id);
+        return entry ? { ...entry, position: index + 1 } : null;
+      })
+      .filter((e): e is TournamentEntry => e !== null);
+
+    setLocalEntries(reordered);
+    patch("setOrder", { orderedPlayerIds });
+  }
+
+  function moveToPosition(playerId: number, newPosition: number) {
+    const ordered = localEntries.map((e) => e.player_id);
+    const fromIdx = ordered.indexOf(playerId);
+    if (fromIdx < 0) return;
+
+    const targetIdx = Math.min(
+      Math.max(newPosition - 1, 0),
+      ordered.length - 1
+    );
+    if (fromIdx === targetIdx) return;
+
+    ordered.splice(fromIdx, 1);
+    ordered.splice(targetIdx, 0, playerId);
+    saveOrder(ordered);
+  }
+
+  function handleDrop(targetPlayerId: number) {
+    if (draggedId === null || draggedId === targetPlayerId) return;
+    const ordered = localEntries.map((e) => e.player_id);
+    const fromIdx = ordered.indexOf(draggedId);
+    const toIdx = ordered.indexOf(targetPlayerId);
+    if (fromIdx < 0 || toIdx < 0) return;
+
+    ordered.splice(fromIdx, 1);
+    ordered.splice(toIdx, 0, draggedId);
+    setDraggedId(null);
+    saveOrder(ordered);
   }
 
   function startTournament() {
@@ -99,7 +136,7 @@ export default function TournamentSetup({
         {isDraft && (
           <button
             onClick={startTournament}
-            disabled={loading || entries.length < 2}
+            disabled={loading || localEntries.length < 2}
             className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
           >
             Avvia torneo
@@ -131,8 +168,8 @@ export default function TournamentSetup({
             Seleziona giocatori
           </h2>
           <p className="mb-4 text-sm text-gray-600">
-            Scegli dall&apos;anagrafica chi partecipa. Puoi riordinare la
-            classifica iniziale prima di avviare.
+            Scegli dall&apos;anagrafica chi partecipa, poi imposta la classifica
+            iniziale trascinando le righe o cambiando il numero di posizione.
           </p>
 
           {availablePlayers.length === 0 ? (
@@ -146,6 +183,7 @@ export default function TournamentSetup({
               {availablePlayers.map((p) => (
                 <button
                   key={p.id}
+                  type="button"
                   onClick={() => addPlayer(p.id)}
                   disabled={loading}
                   className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
@@ -159,9 +197,15 @@ export default function TournamentSetup({
       )}
 
       <div className="overflow-hidden rounded-xl border border-emerald-200 bg-white shadow-sm">
+        {isDraft && localEntries.length > 0 && (
+          <p className="border-b border-emerald-100 bg-emerald-50/60 px-4 py-2 text-xs text-emerald-800">
+            Trascina le righe oppure modifica il numero di posizione
+          </p>
+        )}
         <table className="w-full text-left text-sm">
           <thead className="bg-emerald-50 text-emerald-900">
             <tr>
+              {isDraft && <th className="w-10 px-2 py-3" aria-label="Trascina" />}
               <th className="px-4 py-3 font-semibold">Pos.</th>
               <th className="px-4 py-3 font-semibold">Giocatore</th>
               {isDraft && (
@@ -170,45 +214,65 @@ export default function TournamentSetup({
             </tr>
           </thead>
           <tbody>
-            {entries.length === 0 ? (
+            {localEntries.length === 0 ? (
               <tr>
                 <td
-                  colSpan={isDraft ? 3 : 2}
+                  colSpan={isDraft ? 4 : 2}
                   className="px-4 py-8 text-center text-gray-500"
                 >
                   Nessun giocatore iscritto
                 </td>
               </tr>
             ) : (
-              entries.map((e) => (
-                <tr key={e.player_id} className="border-t border-emerald-100">
-                  <td className="px-4 py-3 font-mono font-bold">{e.position}</td>
+              localEntries.map((e) => (
+                <tr
+                  key={e.player_id}
+                  draggable={isDraft && !loading}
+                  onDragStart={() => setDraggedId(e.player_id)}
+                  onDragEnd={() => setDraggedId(null)}
+                  onDragOver={(event) => {
+                    if (isDraft) event.preventDefault();
+                  }}
+                  onDrop={() => handleDrop(e.player_id)}
+                  className={`border-t border-emerald-100 ${
+                    draggedId === e.player_id ? "bg-emerald-100/80" : ""
+                  } ${isDraft ? "cursor-grab active:cursor-grabbing" : ""}`}
+                >
+                  {isDraft && (
+                    <td className="px-2 py-3 text-center text-gray-400">⋮⋮</td>
+                  )}
+                  <td className="px-4 py-3">
+                    {isDraft ? (
+                      <input
+                        type="number"
+                        min={1}
+                        max={localEntries.length}
+                        defaultValue={e.position}
+                        key={`${e.player_id}-${e.position}`}
+                        disabled={loading}
+                        onBlur={(event) => {
+                          const value = parseInt(event.target.value, 10);
+                          if (!Number.isNaN(value)) {
+                            moveToPosition(e.player_id, value);
+                          }
+                        }}
+                        className="w-14 rounded border border-gray-300 px-2 py-1 text-center font-mono text-sm focus:border-emerald-500 focus:outline-none"
+                      />
+                    ) : (
+                      <span className="font-mono font-bold">{e.position}</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 font-medium">{e.name}</td>
                   {isDraft && (
                     <td className="px-4 py-3">
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => movePlayer(e.player_id, "up")}
-                          disabled={loading || e.position === 1}
-                          className="rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200 disabled:opacity-50"
-                        >
-                          ↑
-                        </button>
-                        <button
-                          onClick={() => movePlayer(e.player_id, "down")}
-                          disabled={loading || e.position === entries.length}
-                          className="rounded bg-gray-100 px-2 py-1 text-xs hover:bg-gray-200 disabled:opacity-50"
-                        >
-                          ↓
-                        </button>
-                        <button
-                          onClick={() => removePlayer(e.player_id)}
-                          disabled={loading}
-                          className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 disabled:opacity-50"
-                        >
-                          Rimuovi
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removePlayer(e.player_id)}
+                        disabled={loading}
+                        className="rounded bg-red-100 px-2 py-1 text-xs text-red-700 hover:bg-red-200 disabled:opacity-50"
+                      >
+                        Rimuovi
+                      </button>
                     </td>
                   )}
                 </tr>
