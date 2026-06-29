@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Nav from "@/components/Nav";
 import type { Tournament } from "@/lib/types";
 
@@ -23,6 +24,7 @@ function tournamentHref(t: Tournament) {
 }
 
 export default function TorneiPage() {
+  const router = useRouter();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [activeList, setActiveList] = useState<Tournament[]>([]);
   const [name, setName] = useState("");
@@ -55,7 +57,7 @@ export default function TorneiPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setName("");
-      window.location.href = `/tornei/${data.id}/impostazioni`;
+      router.push(`/tornei/${data.id}/impostazioni`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore");
     } finally {

@@ -94,20 +94,18 @@ export async function addPlayersToTournament(
   `;
   let position = maxRows[0]?.max ?? 0;
 
-  await sql.begin(async (tx) => {
-    for (const playerId of playerIds) {
-      const player = await tx<{ id: number }[]>`
-        SELECT id FROM players WHERE id = ${playerId}
-      `;
-      if (!player[0]) continue;
-      position++;
-      await tx`
-        INSERT INTO tournament_entries (tournament_id, player_id, position)
-        VALUES (${tournamentId}, ${playerId}, ${position})
-        ON CONFLICT (tournament_id, player_id) DO NOTHING
-      `;
-    }
-  });
+  for (const playerId of playerIds) {
+    const player = await sql<{ id: number }[]>`
+      SELECT id FROM players WHERE id = ${playerId}
+    `;
+    if (!player[0]) continue;
+    position++;
+    await sql`
+      INSERT INTO tournament_entries (tournament_id, player_id, position)
+      VALUES (${tournamentId}, ${playerId}, ${position})
+      ON CONFLICT (tournament_id, player_id) DO NOTHING
+    `;
+  }
 }
 
 export async function removePlayerFromTournament(
@@ -121,13 +119,11 @@ export async function removePlayerFromTournament(
   }
 
   const sql = getSql();
-  await sql.begin(async (tx) => {
-    await tx`
-      DELETE FROM tournament_entries
-      WHERE tournament_id = ${tournamentId} AND player_id = ${playerId}
-    `;
-    await reorderTournamentEntries(tournamentId, tx);
-  });
+  await sql`
+    DELETE FROM tournament_entries
+    WHERE tournament_id = ${tournamentId} AND player_id = ${playerId}
+  `;
+  await reorderTournamentEntries(tournamentId, sql);
 }
 
 export async function setTournamentOrder(

@@ -27,7 +27,7 @@ export function getSql(): Sql {
     );
   }
 
-  const { port, connectionKind } = parseConnection(databaseUrl);
+  const { connectionKind } = parseConnection(databaseUrl);
 
   if (connectionKind === "direct") {
     throw new Error(
@@ -36,14 +36,13 @@ export function getSql(): Sql {
   }
 
   if (!global.__raceSql) {
-    const isTransactionPooler =
-      connectionKind === "pooler" && (port === "6543" || port === "");
+    const isPooler = connectionKind === "pooler";
     global.__raceSql = postgres(databaseUrl, {
       ssl: databaseUrl.includes("supabase") ? "require" : undefined,
-      max: 1,
+      max: isPooler ? 3 : 1,
       idle_timeout: 20,
-      connect_timeout: 10,
-      prepare: isTransactionPooler ? false : undefined,
+      connect_timeout: 15,
+      prepare: isPooler ? false : undefined,
     });
   }
 

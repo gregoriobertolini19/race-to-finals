@@ -22,9 +22,12 @@ export default function TournamentSetupPage() {
     if (tournamentRes.ok) {
       const data = await tournamentRes.json();
       setTournament(data.tournament);
-      setEntries(data.entries);
+      setEntries(data.entries ?? []);
     }
-    setAllPlayers(await playersRes.json());
+    if (playersRes.ok) {
+      const playersData = await playersRes.json();
+      setAllPlayers(Array.isArray(playersData) ? playersData : []);
+    }
   }, [id]);
 
   useEffect(() => {
