@@ -96,7 +96,10 @@ export async function addPlayersToTournament(
 
   await sql.begin(async (tx) => {
     for (const playerId of playerIds) {
-      if (!(await getPlayerById(playerId))) continue;
+      const player = await tx<{ id: number }[]>`
+        SELECT id FROM players WHERE id = ${playerId}
+      `;
+      if (!player[0]) continue;
       position++;
       await tx`
         INSERT INTO tournament_entries (tournament_id, player_id, position)
@@ -231,9 +234,9 @@ export async function getTournamentEntries(
 
 export async function getTournamentEntry(
   tournamentId: number,
-  playerId: number
+  playerId: number,
+  sql: Sql | TransactionSql = getSql()
 ): Promise<TournamentEntry | undefined> {
-  const sql = getSql();
   const rows = await sql<TournamentEntry[]>`
     SELECT te.*, p.name, p.phone
     FROM tournament_entries te

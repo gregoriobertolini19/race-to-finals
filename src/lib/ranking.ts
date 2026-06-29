@@ -8,8 +8,8 @@ export async function applyChallengeResult(
   loserId: number,
   sql: Sql | TransactionSql = getSql()
 ): Promise<void> {
-  const winner = await getTournamentEntry(tournamentId, winnerId);
-  const loser = await getTournamentEntry(tournamentId, loserId);
+  const winner = await getTournamentEntry(tournamentId, winnerId, sql);
+  const loser = await getTournamentEntry(tournamentId, loserId, sql);
   if (!winner || !loser) throw new Error("Giocatore non trovato nel torneo");
 
   const winnerPos = winner.position;
