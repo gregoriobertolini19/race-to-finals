@@ -10,6 +10,7 @@ import {
   groupChallengesByPlayWeek,
   isCurrentWeek,
 } from "@/lib/weeks";
+import { resolveMatchResult } from "@/lib/score";
 
 interface Props {
   challenges: Challenge[];
@@ -192,7 +193,31 @@ function ActiveRow({
   loading: boolean;
   onSubmit: (id: number, winnerId: number, score: string) => void;
 }) {
-  const [score, setScore] = useState("");
+  const [challengerScore, setChallengerScore] = useState("");
+  const [challengedScore, setChallengedScore] = useState("");
+  const [localError, setLocalError] = useState("");
+
+  function handleConfirm() {
+    setLocalError("");
+    const result = resolveMatchResult(
+      c.challenger_id,
+      c.challenged_id,
+      parseInt(challengerScore, 10),
+      parseInt(challengedScore, 10)
+    );
+    if ("error" in result) {
+      setLocalError(result.error);
+      return;
+    }
+    onSubmit(c.id, result.winnerId, result.score);
+    setChallengerScore("");
+    setChallengedScore("");
+  }
+
+  const canSubmit =
+    challengerScore.trim() !== "" &&
+    challengedScore.trim() !== "" &&
+    !loading;
 
   return (
     <div className="space-y-3">
@@ -219,29 +244,51 @@ function ActiveRow({
         </span>
       </div>
 
-      <div className="flex flex-wrap items-end gap-2">
-        <input
-          type="text"
-          placeholder="Punteggio (es. 9-7)"
-          value={score}
-          onChange={(e) => setScore(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-emerald-500 focus:outline-none"
-        />
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+        <p className="mb-3 text-xs font-medium text-gray-600">
+          Inserisci i game vinti (es. 6-4, 7-5). Il vincitore viene calcolato
+          automaticamente.
+        </p>
+        <div className="space-y-2">
+          <label className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
+              {c.challenger_name}
+            </span>
+            <input
+              type="number"
+              min={0}
+              inputMode="numeric"
+              placeholder="0"
+              value={challengerScore}
+              onChange={(e) => setChallengerScore(e.target.value)}
+              className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-center text-sm focus:border-emerald-500 focus:outline-none"
+            />
+          </label>
+          <label className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <span className="min-w-0 flex-1 text-sm font-medium text-gray-900">
+              {c.challenged_name}
+            </span>
+            <input
+              type="number"
+              min={0}
+              inputMode="numeric"
+              placeholder="0"
+              value={challengedScore}
+              onChange={(e) => setChallengedScore(e.target.value)}
+              className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-center text-sm focus:border-emerald-500 focus:outline-none"
+            />
+          </label>
+        </div>
+        {localError && (
+          <p className="mt-2 text-xs text-red-600">{localError}</p>
+        )}
         <button
           type="button"
-          disabled={loading || !score}
-          onClick={() => onSubmit(c.id, c.challenger_id, score)}
-          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          disabled={!canSubmit}
+          onClick={handleConfirm}
+          className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
         >
-          Vince {c.challenger_name?.split(" ")[0]}
-        </button>
-        <button
-          type="button"
-          disabled={loading || !score}
-          onClick={() => onSubmit(c.id, c.challenged_id, score)}
-          className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50"
-        >
-          Vince {c.challenged_name?.split(" ")[0]}
+          {loading ? "Salvo..." : "Conferma risultato"}
         </button>
       </div>
     </div>
