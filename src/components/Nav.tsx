@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Tournament } from "@/lib/types";
@@ -42,8 +43,15 @@ export default function Nav({ tournament }: Props) {
       <div className="mx-auto max-w-5xl px-4 py-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-lg font-bold text-white">
-              R
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-border-accent">
+              <Image
+                src="/borgo-bagnolo-logo.png"
+                alt="Logo Sporting Borgo Bagnolo"
+                width={40}
+                height={40}
+                className="h-full w-full object-contain p-0.5"
+                priority
+              />
             </div>
             <div>
               <p className="text-sm font-semibold tracking-wide text-on-dark-muted">
