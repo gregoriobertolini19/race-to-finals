@@ -208,12 +208,20 @@ export async function completeTournament(
   return (await getTournamentById(tournamentId))!;
 }
 
+export async function deleteTournament(tournamentId: number): Promise<void> {
+  const tournament = await getTournamentById(tournamentId);
+  if (!tournament) throw new Error("Torneo non trovato");
+
+  const sql = getSql();
+  await sql`DELETE FROM tournaments WHERE id = ${tournamentId}`;
+}
+
 export async function getTournamentEntries(
   tournamentId: number
 ): Promise<TournamentEntry[]> {
   const sql = getSql();
   return sql<TournamentEntry[]>`
-    SELECT te.*, p.name
+    SELECT te.*, p.name, p.phone
     FROM tournament_entries te
     JOIN players p ON te.player_id = p.id
     WHERE te.tournament_id = ${tournamentId}
@@ -227,7 +235,7 @@ export async function getTournamentEntry(
 ): Promise<TournamentEntry | undefined> {
   const sql = getSql();
   const rows = await sql<TournamentEntry[]>`
-    SELECT te.*, p.name
+    SELECT te.*, p.name, p.phone
     FROM tournament_entries te
     JOIN players p ON te.player_id = p.id
     WHERE te.tournament_id = ${tournamentId} AND te.player_id = ${playerId}

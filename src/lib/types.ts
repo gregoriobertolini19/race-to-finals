@@ -12,6 +12,7 @@ export type ChallengeStatus =
 export interface Player {
   id: number;
   name: string;
+  phone: string | null;
   created_at: string;
 }
 
@@ -35,6 +36,7 @@ export interface TournamentEntry {
   status: PlayerStatus;
   standby_since: string | null;
   name: string;
+  phone?: string | null;
 }
 
 export interface Challenge {

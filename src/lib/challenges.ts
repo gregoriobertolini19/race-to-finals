@@ -202,7 +202,7 @@ export async function getChallengeableOpponents(
 
   const sql = getSql();
   const allPlayers = await sql<TournamentEntry[]>`
-    SELECT te.*, p.name FROM tournament_entries te
+    SELECT te.*, p.name, p.phone FROM tournament_entries te
     JOIN players p ON te.player_id = p.id
     WHERE te.tournament_id = ${tournamentId} AND te.player_id != ${playerId}
     AND te.status = 'active'

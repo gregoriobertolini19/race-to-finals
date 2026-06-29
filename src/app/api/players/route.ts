@@ -12,11 +12,14 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { name } = await request.json();
-    if (!name?.trim()) {
+    const { firstName, lastName, phone } = await request.json();
+    if (!firstName?.trim()) {
       return NextResponse.json({ error: "Nome obbligatorio" }, { status: 400 });
     }
-    const player = await addPlayer(name);
+    if (!lastName?.trim()) {
+      return NextResponse.json({ error: "Cognome obbligatorio" }, { status: 400 });
+    }
+    const player = await addPlayer(firstName, lastName, phone);
     return NextResponse.json(player, { status: 201 });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Errore";

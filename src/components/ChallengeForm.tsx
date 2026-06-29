@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { TournamentEntry } from "@/lib/types";
+import { formatPhoneDisplay, phoneHref } from "@/lib/phone";
 
 interface Props {
   tournamentId: number;
@@ -22,6 +23,11 @@ export default function ChallengeForm({
   const [error, setError] = useState("");
 
   const activeEntries = entries.filter((e) => e.status === "active");
+
+  const selectedOpponent = useMemo(
+    () => opponents.find((e) => String(e.player_id) === challengedId),
+    [opponents, challengedId]
+  );
 
   async function loadOpponents(playerId: string) {
     setChallengerId(playerId);
@@ -112,10 +118,32 @@ export default function ChallengeForm({
             {opponents.map((e) => (
               <option key={e.player_id} value={e.player_id}>
                 #{e.position} {e.name}
+                {e.phone ? ` · ${e.phone}` : ""}
               </option>
             ))}
           </select>
         </div>
+
+        {selectedOpponent && (
+          <div className="sm:col-span-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm">
+            <p className="font-medium text-emerald-950">
+              Contatta {selectedOpponent.name}
+            </p>
+            {phoneHref(selectedOpponent.phone) ? (
+              <a
+                href={phoneHref(selectedOpponent.phone)!}
+                className="mt-1 inline-block font-semibold text-emerald-700 hover:underline"
+              >
+                {formatPhoneDisplay(selectedOpponent.phone)}
+              </a>
+            ) : (
+              <p className="mt-1 text-gray-600">
+                Nessun telefono in anagrafica — chiedi a {selectedOpponent.name}{" "}
+                di aggiornarlo in Giocatori.
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="sm:col-span-2">
           <label className="mb-1 block text-sm font-medium text-gray-700">

@@ -28,13 +28,14 @@ export default function TorneiPage() {
   const [name, setName] = useState("");
   const [endDate, setEndDate] = useState("2026-10-08");
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
     const res = await fetch("/api/tournaments");
     const data = await res.json();
-    setTournaments(data.tournaments);
-    setActiveList(data.active);
+    setTournaments(data.tournaments ?? []);
+    setActiveList(data.active ?? []);
   }, []);
 
   useEffect(() => {
@@ -59,6 +60,26 @@ export default function TorneiPage() {
       setError(err instanceof Error ? err.message : "Errore");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function removeTournament(tournament: Tournament) {
+    const message = `Eliminare il torneo "${tournament.name}"?\n\nVerranno eliminate anche classifica, sfide e iscrizioni. I giocatori nell'anagrafica restano salvati.\n\nQuesta azione non si può annullare.`;
+    if (!confirm(message)) return;
+
+    setDeletingId(tournament.id);
+    setError("");
+    try {
+      const res = await fetch(`/api/tournaments/${tournament.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -149,24 +170,36 @@ export default function TorneiPage() {
             <p className="text-sm text-gray-500">Nessun torneo creato</p>
           ) : (
             tournaments.map((t) => (
-              <Link
+              <div
                 key={t.id}
-                href={tournamentHref(t)}
-                className="flex items-center justify-between rounded-xl border border-emerald-200 bg-white px-4 py-3 shadow-sm transition hover:border-emerald-400"
+                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-white shadow-sm transition hover:border-emerald-400"
               >
-                <div>
-                  <p className="font-medium text-gray-900">{t.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {t.player_count ?? 0} giocatori
-                    {t.end_date && ` · Fine ${t.end_date}`}
-                  </p>
-                </div>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor[t.status]}`}
+                <Link
+                  href={tournamentHref(t)}
+                  className="flex min-w-0 flex-1 items-center justify-between px-4 py-3"
                 >
-                  {statusLabel[t.status]}
-                </span>
-              </Link>
+                  <div>
+                    <p className="font-medium text-gray-900">{t.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {t.player_count ?? 0} giocatori
+                      {t.end_date && ` · Fine ${t.end_date}`}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor[t.status]}`}
+                  >
+                    {statusLabel[t.status]}
+                  </span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => removeTournament(t)}
+                  disabled={deletingId === t.id}
+                  className="mr-3 shrink-0 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
+                >
+                  {deletingId === t.id ? "Elimino..." : "Elimina"}
+                </button>
+              </div>
             ))
           )}
         </div>

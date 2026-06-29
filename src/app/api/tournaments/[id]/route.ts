@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   addPlayersToTournament,
   completeTournament,
+  deleteTournament,
   getTournamentById,
   getTournamentEntries,
   removePlayerFromTournament,
@@ -70,6 +71,21 @@ export async function PATCH(
     }
 
     return NextResponse.json({ error: "Azione non valida" }, { status: 400 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Errore";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const tournamentId = parseInt(id, 10);
+    await deleteTournament(tournamentId);
+    return NextResponse.json({ ok: true });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Errore";
     return NextResponse.json({ error: message }, { status: 400 });
