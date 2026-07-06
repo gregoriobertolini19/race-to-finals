@@ -91,8 +91,8 @@ export default function AvailableOpponentsList({
   if (opponents.length === 0) {
     return (
       <StatusCard variant="neutral">
-        Nessun avversario sfidabile al momento (entro 5 posizioni, attivo e
-        senza sfide recenti).
+        Nessun avversario sfidabile al momento (fino a 5 posizioni davanti,
+        attivo e senza sfide recenti).
       </StatusCard>
     );
   }
@@ -102,8 +102,8 @@ export default function AvailableOpponentsList({
       <div className="border-b border-border bg-accent-subtle px-5 py-4">
         <h2 className="text-lg font-semibold text-ink">Puoi sfidare</h2>
         <p className="mt-1 text-sm text-ink-muted">
-          Giocatori entro 5 posizioni da te — contattali per organizzare la
-          partita.
+          Giocatori fino a 5 posizioni davanti a te — contattali per organizzare
+          la partita.
         </p>
       </div>
       <ul className="divide-y divide-border">

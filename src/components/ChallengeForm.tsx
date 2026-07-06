@@ -106,7 +106,7 @@ export default function ChallengeForm({
 
         <div>
           <label className="mb-1 block text-sm font-medium text-ink-secondary">
-            Sfidato (±5 posizioni)
+            Sfidato (fino a 5 posizioni davanti)
           </label>
           <select
             value={challengedId}

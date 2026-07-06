@@ -7,6 +7,15 @@ const CHALLENGE_RANGE = 5;
 const CHALLENGE_DEADLINE_DAYS = 14;
 const MONTHLY_LIMIT_DAYS = 30;
 
+/** Il sfidato deve essere davanti in classifica (posizione minore), entro CHALLENGE_RANGE. */
+function isWithinChallengeRange(
+  challengerPosition: number,
+  challengedPosition: number
+): boolean {
+  const positionsAhead = challengerPosition - challengedPosition;
+  return positionsAhead >= 1 && positionsAhead <= CHALLENGE_RANGE;
+}
+
 export async function getTournamentChallenges(
   tournamentId: number,
   includeCompleted = true
@@ -72,9 +81,12 @@ export async function validateChallenge(
     return "Il giocatore sfidato ha già una sfida in corso";
   }
 
-  const diff = Math.abs(challenger.position - challenged.position);
-  if (diff > CHALLENGE_RANGE) {
-    return `Puoi sfidare solo giocatori entro ${CHALLENGE_RANGE} posizioni (differenza: ${diff})`;
+  if (!isWithinChallengeRange(challenger.position, challenged.position)) {
+    const positionsAhead = challenger.position - challenged.position;
+    if (positionsAhead <= 0) {
+      return "Puoi sfidare solo giocatori davanti a te in classifica";
+    }
+    return `Puoi sfidare solo giocatori fino a ${CHALLENGE_RANGE} posizioni davanti a te (differenza: ${positionsAhead})`;
   }
 
   const sql = getSql();
@@ -431,7 +443,8 @@ export async function getChallengeableOpponents(
     JOIN players p ON te.player_id = p.id
     WHERE te.tournament_id = ${tournamentId} AND te.player_id != ${playerId}
     AND te.status = 'active'
-    AND ABS(te.position - ${player.position}) <= ${CHALLENGE_RANGE}
+    AND te.position < ${player.position}
+    AND te.position >= ${player.position - CHALLENGE_RANGE}
     ORDER BY te.position ASC
   `;
 
