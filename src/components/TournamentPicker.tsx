@@ -67,21 +67,10 @@ export default function TournamentPicker({ tournaments }: Props) {
       {tournaments.length === 0 && (
         <div className="rounded-xl border border-dashed border-border-accent bg-surface p-10 text-center">
           <p className="text-ink-muted">Nessun torneo ancora creato</p>
-          <Link
-            href="/tornei"
-            className="mt-4 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover"
-          >
-            Crea il primo torneo
-          </Link>
+          <p className="mt-2 text-sm text-ink-muted">
+            Usa l&apos;area gestione in fondo alla pagina per crearne uno.
+          </p>
         </div>
-      )}
-
-      {tournaments.length > 0 && (
-        <p className="text-center text-sm text-ink-muted">
-          <Link href="/tornei" className="text-accent-dark hover:underline">
-            Gestisci tutti i tornei →
-          </Link>
-        </p>
       )}
     </div>
   );

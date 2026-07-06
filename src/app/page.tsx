@@ -24,11 +24,14 @@ export default function HomePage() {
       <PlayerHeader />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
         <TournamentPicker tournaments={tournaments} />
-        <p className="mt-10 text-center text-sm text-ink-muted">
-          <Link href="/login" className="text-accent-dark hover:underline">
-            Area gestore →
+        <div className="mt-10 text-center">
+          <Link
+            href="/tornei"
+            className="inline-block rounded-lg border border-border-accent bg-surface px-5 py-2.5 text-sm font-medium text-ink-secondary shadow-sm hover:border-accent hover:text-accent-dark"
+          >
+            Area gestione
           </Link>
-        </p>
+        </div>
       </main>
     </>
   );
