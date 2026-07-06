@@ -10,7 +10,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/tornei";
 
-  const [pin, setPin] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +23,7 @@ function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin }),
+        body: JSON.stringify({ password }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Accesso negato");
@@ -49,7 +49,7 @@ function LoginForm() {
             priority
           />
         </div>
-        <h1 className="mt-4 text-xl font-bold text-ink">Area gestore</h1>
+        <h1 className="mt-4 text-xl font-bold text-ink">Area gestione</h1>
         <p className="mt-1 text-sm text-ink-muted">
           Accesso riservato alla gestione torneo
         </p>
@@ -60,16 +60,15 @@ function LoginForm() {
         className="rounded-xl border border-border-accent bg-surface p-6 shadow-sm"
       >
         <label className="mb-1 block text-sm font-medium text-ink-secondary">
-          PIN amministratore
+          Password
         </label>
         <input
           type="password"
-          inputMode="numeric"
           autoComplete="current-password"
-          value={pin}
-          onChange={(e) => setPin(e.target.value)}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded-lg border border-border px-3 py-2.5 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-          placeholder="Inserisci il PIN"
+          placeholder="Inserisci la password"
           required
         />
 

@@ -9,12 +9,12 @@ export function getAuthSecret(): string {
   return secret;
 }
 
-export function getAdminPin(): string {
-  const pin = process.env.ADMIN_PIN;
-  if (!pin) {
-    throw new Error("ADMIN_PIN non configurato");
+export function getAdminPassword(): string {
+  const password = process.env.ADMIN_PASSWORD ?? process.env.ADMIN_PIN;
+  if (!password) {
+    throw new Error("ADMIN_PASSWORD non configurato");
   }
-  return pin;
+  return password;
 }
 
 async function hmacSign(message: string, secret: string): Promise<string> {
@@ -62,15 +62,17 @@ export async function verifySessionToken(
   }
 }
 
-export function verifyPin(pin: string): boolean {
+export function verifyPassword(password: string): boolean {
   try {
-    const adminPin = getAdminPin();
-    return timingSafeEqual(pin, adminPin);
+    return timingSafeEqual(password, getAdminPassword());
   } catch {
     return false;
   }
 }
 
 export function isAuthConfigured(): boolean {
-  return Boolean(process.env.AUTH_SECRET && process.env.ADMIN_PIN);
+  return Boolean(
+    process.env.AUTH_SECRET &&
+      (process.env.ADMIN_PASSWORD || process.env.ADMIN_PIN)
+  );
 }
