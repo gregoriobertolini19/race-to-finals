@@ -106,6 +106,12 @@ export default function TournamentRankingPage() {
               >
                 Vai alle sfide
               </Link>
+              <Link
+                href={`/tornei/${id}/impostazioni`}
+                className="rounded-lg border border-border-accent bg-surface px-4 py-2 text-sm font-medium text-accent-dark shadow-sm hover:bg-accent-subtle"
+              >
+                Aggiungi giocatore
+              </Link>
               <button
                 onClick={applyRanking}
                 disabled={applying}

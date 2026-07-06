@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Player, TournamentEntry } from "@/lib/types";
 import { displayPlayerName } from "@/lib/player-name";
 
@@ -19,6 +20,9 @@ export default function TournamentParticipants({
 }: Props) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
 
   const enrolledIds = new Set(entries.map((e) => e.player_id));
   const available = allPlayers.filter((p) => !enrolledIds.has(p.id));
@@ -58,6 +62,47 @@ export default function TournamentParticipants({
     }
   }
 
+  async function createAndEnroll(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const playerRes = await fetch("/api/players", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          phone: phone || null,
+        }),
+      });
+      const playerData = await playerRes.json();
+      if (!playerRes.ok) throw new Error(playerData.error);
+
+      const entryRes = await fetch(`/api/tournaments/${tournamentId}/entries`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: playerData.id }),
+      });
+      const entryData = await entryRes.json();
+      if (!entryRes.ok) throw new Error(entryData.error);
+
+      setFirstName("");
+      setLastName("");
+      setPhone("");
+      onUpdated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const lastPosition =
+    entries.length > 0
+      ? Math.max(...entries.map((entry) => entry.position))
+      : 0;
+
   return (
     <div className="space-y-4">
       <div>
@@ -65,7 +110,9 @@ export default function TournamentParticipants({
           Partecipanti torneo attivo
         </h2>
         <p className="text-sm text-ink-muted">
-          Stand-by e iscrizioni tardive si gestiscono qui.
+          Aggiungi giocatori durante il torneo: entrano in ultima posizione
+          {lastPosition > 0 ? ` (#${lastPosition + 1})` : ""}. Gestisci anche
+          lo stand-by.
         </p>
       </div>
 
@@ -75,10 +122,51 @@ export default function TournamentParticipants({
         </p>
       )}
 
+      <form
+        onSubmit={createAndEnroll}
+        className="rounded-xl border border-border-accent bg-surface p-4 shadow-sm"
+      >
+        <p className="mb-3 text-sm font-medium text-ink-secondary">
+          Nuovo giocatore (anagrafica + iscrizione)
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="Nome"
+            required
+            className="rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          />
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Cognome"
+            required
+            className="rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          />
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="Telefono (opzionale)"
+            className="rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-3 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-50"
+        >
+          {loading ? "Aggiungo..." : "Aggiungi in ultima posizione"}
+        </button>
+      </form>
+
       {available.length > 0 && (
         <div className="rounded-xl border border-border-accent bg-surface p-4 shadow-sm">
           <p className="mb-2 text-sm font-medium text-ink-secondary">
-            Iscrivi nuovo giocatore al torneo (ultima posizione)
+            Oppure iscrivi un giocatore già in anagrafica
           </p>
           <div className="flex flex-wrap gap-2">
             {available.map((p) => (
@@ -93,6 +181,17 @@ export default function TournamentParticipants({
             ))}
           </div>
         </div>
+      )}
+
+      {available.length === 0 && allPlayers.length > 0 && (
+        <p className="text-sm text-ink-muted">
+          Tutti i giocatori in anagrafica sono già iscritti. Usa il form sopra
+          per aggiungerne uno nuovo, oppure vai in{" "}
+          <Link href="/giocatori" className="font-medium text-accent-dark hover:underline">
+            Anagrafica
+          </Link>
+          .
+        </p>
       )}
 
       <div className="overflow-hidden rounded-xl border border-border-accent bg-surface shadow-sm">

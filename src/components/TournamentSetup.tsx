@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Player, Tournament, TournamentEntry } from "@/lib/types";
 import { displayPlayerName } from "@/lib/player-name";
+import TournamentParticipants from "@/components/TournamentParticipants";
 
 interface Props {
   tournament: Tournament;
@@ -197,6 +198,16 @@ export default function TournamentSetup({
         </div>
       )}
 
+      {isActive && (
+        <TournamentParticipants
+          tournamentId={tournament.id}
+          entries={localEntries}
+          allPlayers={allPlayers}
+          onUpdated={onUpdated}
+        />
+      )}
+
+      {!isActive && (
       <div className="overflow-hidden rounded-xl border border-border-accent bg-surface shadow-sm">
         {isDraft && localEntries.length > 0 && (
           <p className="border-b border-border bg-accent-subtle/60 px-4 py-2 text-xs text-accent-dark">
@@ -282,10 +293,18 @@ export default function TournamentSetup({
           </tbody>
         </table>
       </div>
+      )}
+
+      {isDraft && localEntries.length > 0 && (
+        <p className="text-sm text-ink-muted">
+          Quando il torneo è avviato potrai aggiungere altri giocatori dalle
+          Impostazioni: entreranno in ultima posizione.
+        </p>
+      )}
 
       {isActive && (
         <p className="text-sm text-accent-dark">
-          Torneo in corso. Vai alla{" "}
+          Vai alla{" "}
           <Link
             href={`/tornei/${tournament.id}`}
             className="font-medium underline"
