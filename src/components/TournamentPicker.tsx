@@ -26,7 +26,8 @@ export default function TournamentPicker({ tournaments }: Props) {
 
   function tournamentHref(t: Tournament) {
     if (t.status === "draft") return `/tornei/${t.id}/impostazioni`;
-    return `/tornei/${t.id}`;
+    if (t.status === "active") return `/tornei/${t.id}/gioca`;
+    return `/tornei/${t.id}/gioca`;
   }
 
   return (
@@ -34,7 +35,7 @@ export default function TournamentPicker({ tournaments }: Props) {
       <div>
         <h1 className="text-2xl font-bold text-ink">Scegli torneo</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          Seleziona il torneo per vedere classifica e sfide
+          Seleziona il torneo per vedere classifica e avversari disponibili
         </p>
       </div>
 
@@ -125,7 +126,12 @@ function TournamentSection({
             </div>
             {t.status === "active" && (
               <p className="mt-3 text-xs font-medium text-accent-dark">
-                Apri classifica e sfide →
+                Vedi classifica e avversari →
+              </p>
+            )}
+            {t.status === "completed" && (
+              <p className="mt-3 text-xs font-medium text-accent-dark">
+                Vedi classifica finale →
               </p>
             )}
           </Link>

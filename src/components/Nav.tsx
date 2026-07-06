@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { Tournament } from "@/lib/types";
 
 const globalLinks = [
@@ -17,6 +17,7 @@ interface Props {
 
 export default function Nav({ tournament }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const tournamentMatch = pathname.match(/^\/tornei\/(\d+)/);
   const tournamentId = tournamentMatch?.[1];
   const isDraft = tournament?.status === "draft";
@@ -37,6 +38,12 @@ export default function Nav({ tournament }: Props) {
         },
       ]
     : [];
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/");
+    router.refresh();
+  }
 
   return (
     <header className="border-b border-dark-elevated bg-dark text-on-dark">
@@ -62,7 +69,7 @@ export default function Nav({ tournament }: Props) {
               </h1>
             </div>
           </Link>
-          <nav className="flex flex-wrap gap-1">
+          <nav className="flex flex-wrap items-center gap-1">
             {globalLinks.map((link) => (
               <Link
                 key={link.href}
@@ -76,6 +83,13 @@ export default function Nav({ tournament }: Props) {
                 {link.label}
               </Link>
             ))}
+            <button
+              type="button"
+              onClick={logout}
+              className="rounded-lg px-3 py-2 text-sm font-medium text-on-dark-muted transition hover:bg-dark-elevated hover:text-on-dark"
+            >
+              Esci
+            </button>
           </nav>
         </div>
 

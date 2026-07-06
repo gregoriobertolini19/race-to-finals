@@ -18,9 +18,16 @@ const statusColors: Record<TournamentEntry["status"], string> = {
 interface Props {
   entries: TournamentEntry[];
   highlightTop?: number;
+  hidePhone?: boolean;
+  highlightPlayerId?: number;
 }
 
-export default function RankingTable({ entries, highlightTop = 8 }: Props) {
+export default function RankingTable({
+  entries,
+  highlightTop = 8,
+  hidePhone = false,
+  highlightPlayerId,
+}: Props) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border-accent bg-surface shadow-sm">
       <table className="w-full text-left text-sm">
@@ -28,7 +35,9 @@ export default function RankingTable({ entries, highlightTop = 8 }: Props) {
           <tr>
             <th className="px-4 py-3 font-semibold">Pos.</th>
             <th className="px-4 py-3 font-semibold">Giocatore</th>
-            <th className="px-4 py-3 font-semibold">Telefono</th>
+            {!hidePhone && (
+              <th className="px-4 py-3 font-semibold">Telefono</th>
+            )}
             <th className="px-3 py-3 text-center font-semibold">Partite</th>
             <th className="px-3 py-3 text-center font-semibold">Vittorie</th>
             <th className="px-3 py-3 text-center font-semibold">Sconfitte</th>
@@ -39,33 +48,41 @@ export default function RankingTable({ entries, highlightTop = 8 }: Props) {
         <tbody>
           {entries.map((entry) => {
             const qualifies = entry.position <= highlightTop;
+            const isSelf = highlightPlayerId === entry.player_id;
             return (
               <tr
                 key={entry.player_id}
                 className={`border-t border-border ${
                   qualifies ? "bg-accent-subtle/60" : ""
-                }`}
+                } ${isSelf ? "ring-2 ring-inset ring-accent" : ""}`}
               >
                 <td className="px-4 py-3 font-mono font-bold text-ink">
                   {entry.position}
                 </td>
                 <td className="px-4 py-3 font-medium text-ink">
                   {entry.name}
-                </td>
-                <td className="px-4 py-3">
-                  {phoneHref(entry.phone) ? (
-                    <a
-                      href={phoneHref(entry.phone)!}
-                      className="text-accent-dark hover:underline"
-                    >
-                      {formatPhoneDisplay(entry.phone)}
-                    </a>
-                  ) : (
-                    <span className="text-ink-muted">
-                      {formatPhoneDisplay(entry.phone)}
+                  {isSelf && (
+                    <span className="ml-2 text-xs font-medium text-accent-dark">
+                      (tu)
                     </span>
                   )}
                 </td>
+                {!hidePhone && (
+                  <td className="px-4 py-3">
+                    {phoneHref(entry.phone) ? (
+                      <a
+                        href={phoneHref(entry.phone)!}
+                        className="text-accent-dark hover:underline"
+                      >
+                        {formatPhoneDisplay(entry.phone)}
+                      </a>
+                    ) : (
+                      <span className="text-ink-muted">
+                        {formatPhoneDisplay(entry.phone)}
+                      </span>
+                    )}
+                  </td>
+                )}
                 <td className="px-3 py-3 text-center font-mono text-ink-secondary">
                   {entry.matches_played ?? 0}
                 </td>

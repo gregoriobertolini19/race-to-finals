@@ -14,27 +14,33 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const tournamentId = parseInt(id, 10);
-  const tournament = await requireTournament(tournamentId);
+  try {
+    const { id } = await params;
+    const tournamentId = parseInt(id, 10);
+    const tournament = await requireTournament(tournamentId);
 
-  if (tournament.status === "draft") {
-    return NextResponse.json(
-      { error: "Il torneo non è ancora stato avviato" },
-      { status: 400 }
+    if (tournament.status === "draft") {
+      return NextResponse.json(
+        { error: "Il torneo non è ancora stato avviato" },
+        { status: 400 }
+      );
+    }
+
+    await cancelExpiredChallenges(tournamentId);
+    const weekly = await maybeRunWeeklyUpdate(tournamentId);
+    const entries = attachMatchStatsToEntries(
+      await getTournamentEntries(tournamentId),
+      await getTournamentMatchStats(tournamentId)
     );
+
+    return NextResponse.json({
+      tournament,
+      entries,
+      weeklyUpdate: weekly,
+    });
+  } catch (e) {
+    const message =
+      e instanceof Error ? e.message : "Errore nel caricamento della classifica";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  await cancelExpiredChallenges(tournamentId);
-  const weekly = await maybeRunWeeklyUpdate(tournamentId);
-  const entries = attachMatchStatsToEntries(
-    await getTournamentEntries(tournamentId),
-    await getTournamentMatchStats(tournamentId)
-  );
-
-  return NextResponse.json({
-    tournament,
-    entries,
-    weeklyUpdate: weekly,
-  });
 }

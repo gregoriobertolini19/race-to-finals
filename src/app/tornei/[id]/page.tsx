@@ -93,7 +93,13 @@ export default function TournamentRankingPage() {
             </p>
           </div>
           {isActive && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={`/tornei/${id}/gioca`}
+                className="rounded-lg border border-border-accent bg-surface px-4 py-2 text-sm font-medium text-accent-dark shadow-sm hover:bg-accent-subtle"
+              >
+                Vista giocatore
+              </Link>
               <Link
                 href={`/tornei/${id}/sfide`}
                 className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover"
