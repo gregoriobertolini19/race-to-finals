@@ -1,6 +1,7 @@
 "use client";
 
 import type { TournamentEntry } from "@/lib/types";
+import { displayPlayerName } from "@/lib/player-name";
 import { formatPhoneDisplay, phoneHref } from "@/lib/phone";
 
 const statusLabels: Record<TournamentEntry["status"], string> = {
@@ -60,7 +61,7 @@ export default function RankingTable({
                   {entry.position}
                 </td>
                 <td className="px-4 py-3 font-medium text-ink">
-                  {entry.name}
+                  {displayPlayerName(entry.name)}
                   {isSelf && (
                     <span className="ml-2 text-xs font-medium text-accent-dark">
                       (tu)

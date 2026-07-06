@@ -40,6 +40,39 @@ export async function applyChallengeResult(
   }
 }
 
+export async function reverseChallengeResult(
+  tournamentId: number,
+  winnerId: number,
+  loserId: number,
+  winnerPos: number,
+  loserPos: number,
+  sql: Sql | TransactionSql = getSql()
+): Promise<void> {
+  if (winnerPos > loserPos) {
+    await sql`
+      UPDATE tournament_entries SET position = position - 1
+      WHERE tournament_id = ${tournamentId}
+      AND position > ${loserPos} AND position <= ${winnerPos}
+      AND player_id != ${winnerId}
+    `;
+    await sql`
+      UPDATE tournament_entries SET position = ${winnerPos}
+      WHERE tournament_id = ${tournamentId} AND player_id = ${winnerId}
+    `;
+  } else if (winnerPos < loserPos) {
+    await sql`
+      UPDATE tournament_entries SET position = position - 1
+      WHERE tournament_id = ${tournamentId}
+      AND position > ${winnerPos - 1} AND position <= ${winnerPos}
+      AND player_id != ${winnerId}
+    `;
+    await sql`
+      UPDATE tournament_entries SET position = ${winnerPos}
+      WHERE tournament_id = ${tournamentId} AND player_id = ${winnerId}
+    `;
+  }
+}
+
 export async function applyStandbyPenalties(
   tournamentId: number
 ): Promise<number> {
@@ -116,6 +149,17 @@ export async function applyPendingRankingUpdates(
         winnerId === challenge.challenger_id
           ? challenge.challenged_id
           : challenge.challenger_id;
+
+      const winner = await getTournamentEntry(tournamentId, winnerId, tx);
+      const loser = await getTournamentEntry(tournamentId, loserId, tx);
+      if (!winner || !loser) throw new Error("Giocatore non trovato nel torneo");
+
+      await tx`
+        UPDATE challenges
+        SET winner_position_before = ${winner.position},
+            loser_position_before = ${loser.position}
+        WHERE id = ${challenge.id}
+      `;
 
       await applyChallengeResult(tournamentId, winnerId, loserId, tx);
 

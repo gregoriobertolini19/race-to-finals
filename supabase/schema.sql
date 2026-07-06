@@ -37,7 +37,9 @@ CREATE TABLE IF NOT EXISTS challenges (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   scheduled_at DATE,
   completed_at TIMESTAMPTZ,
-  ranking_applied BOOLEAN NOT NULL DEFAULT FALSE
+  ranking_applied BOOLEAN NOT NULL DEFAULT FALSE,
+  winner_position_before INTEGER,
+  loser_position_before INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS ranking_updates (

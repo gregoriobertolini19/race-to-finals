@@ -1,4 +1,5 @@
 import { getSql } from "./db";
+import { formatPlayerName } from "./player-name";
 import type { Player } from "./types";
 
 export async function getAllPlayers(): Promise<Player[]> {
@@ -33,24 +34,6 @@ export async function addPlayer(
     RETURNING *
   `;
   return rows[0];
-}
-
-export function formatPlayerName(firstName: string, lastName: string): string {
-  return `${capitalizeNamePart(firstName)} ${capitalizeNamePart(lastName)}`;
-}
-
-function capitalizeNamePart(value: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-
-  return trimmed
-    .split(/\s+/)
-    .map(
-      (word) =>
-        word.charAt(0).toLocaleUpperCase("it-IT") +
-        word.slice(1).toLocaleLowerCase("it-IT")
-    )
-    .join(" ");
 }
 
 export async function updatePlayer(

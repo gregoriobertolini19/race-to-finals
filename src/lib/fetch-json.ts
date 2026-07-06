@@ -1,8 +1,9 @@
 export async function fetchJson<T>(
-  url: string
+  url: string,
+  init?: RequestInit
 ): Promise<{ ok: true; data: T } | { ok: false; status: number; error: string }> {
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, init);
     const text = await res.text();
 
     let data: T & { error?: string } = {} as T & { error?: string };

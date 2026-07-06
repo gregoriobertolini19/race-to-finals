@@ -54,6 +54,8 @@ export interface Challenge {
   scheduled_at: string | null;
   completed_at: string | null;
   ranking_applied: boolean;
+  winner_position_before?: number | null;
+  loser_position_before?: number | null;
   challenger_name?: string;
   challenged_name?: string;
   challenger_position?: number;

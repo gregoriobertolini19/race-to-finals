@@ -1,3 +1,16 @@
+export function parseScore(score: string | null | undefined): {
+  challengerScore: number;
+  challengedScore: number;
+} | null {
+  if (!score) return null;
+  const match = score.match(/^(\d+)-(\d+)$/);
+  if (!match) return null;
+  return {
+    challengerScore: parseInt(match[1], 10),
+    challengedScore: parseInt(match[2], 10),
+  };
+}
+
 export function resolveMatchResult(
   challengerId: number,
   challengedId: number,

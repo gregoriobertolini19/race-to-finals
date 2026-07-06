@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { cancelExpiredChallenges } from "@/lib/challenges";
+import {
+  ADMIN_COOKIE,
+  PLAYER_COOKIE,
+  canViewSensitivePlayerData,
+} from "@/lib/auth";
 import {
   attachMatchStatsToEntries,
   getTournamentMatchStats,
 } from "@/lib/match-stats";
+import { redactEntryPhones } from "@/lib/redact-phones";
 import {
   getTournamentEntries,
   requireTournament,
@@ -33,9 +40,15 @@ export async function GET(
       await getTournamentMatchStats(tournamentId)
     );
 
+    const jar = await cookies();
+    const canViewPhones = await canViewSensitivePlayerData(
+      jar.get(ADMIN_COOKIE)?.value,
+      jar.get(PLAYER_COOKIE)?.value
+    );
+
     return NextResponse.json({
       tournament,
-      entries,
+      entries: canViewPhones ? entries : redactEntryPhones(entries),
       weeklyUpdate: weekly,
     });
   } catch (e) {

@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Richiesta non valida" }, { status: 400 });
   }
 
-  const password = body.password ?? "";
+  const password = (body.password ?? "").trim();
   if (!password) {
     return NextResponse.json(
       { error: "Inserisci la password" },

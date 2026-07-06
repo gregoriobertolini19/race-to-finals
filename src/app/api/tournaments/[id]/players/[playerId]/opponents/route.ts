@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getChallengeableOpponents } from "@/lib/challenges";
+import {
+  ADMIN_COOKIE,
+  PLAYER_COOKIE,
+  canViewSensitivePlayerData,
+} from "@/lib/auth";
 import { requirePlayableTournament } from "@/lib/tournaments";
 
 export async function GET(
@@ -15,6 +21,20 @@ export async function GET(
       tournamentId,
       parseInt(playerId, 10)
     );
+
+    const jar = await cookies();
+    const canViewPhones = await canViewSensitivePlayerData(
+      jar.get(ADMIN_COOKIE)?.value,
+      jar.get(PLAYER_COOKIE)?.value
+    );
+
+    if (!canViewPhones) {
+      return NextResponse.json(
+        { error: "Password richiesta", requiresAuth: true },
+        { status: 401 }
+      );
+    }
+
     return NextResponse.json(opponents);
   } catch (e) {
     const message =

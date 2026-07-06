@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Player, TournamentEntry } from "@/lib/types";
+import { displayPlayerName } from "@/lib/player-name";
 
 interface Props {
   tournamentId: number;
@@ -87,7 +88,7 @@ export default function TournamentParticipants({
                 disabled={loading}
                 className="rounded-lg border border-border-accent bg-accent-subtle px-3 py-1.5 text-sm text-accent-dark hover:bg-accent-muted disabled:opacity-50"
               >
-                + {p.name}
+                + {displayPlayerName(p.name)}
               </button>
             ))}
           </div>
@@ -108,7 +109,7 @@ export default function TournamentParticipants({
             {entries.map((e) => (
               <tr key={e.player_id} className="border-t border-border">
                 <td className="px-4 py-3 font-mono">{e.position}</td>
-                <td className="px-4 py-3 font-medium">{e.name}</td>
+                <td className="px-4 py-3 font-medium">{displayPlayerName(e.name)}</td>
                 <td className="px-4 py-3 capitalize">{e.status}</td>
                 <td className="px-4 py-3">
                   <button

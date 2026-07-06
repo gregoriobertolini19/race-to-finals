@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Player } from "@/lib/types";
+import { displayPlayerName } from "@/lib/player-name";
 import { formatPhoneDisplay, phoneHref } from "@/lib/phone";
 
 interface Props {
@@ -15,6 +16,11 @@ export default function PlayerManager({ players, onUpdated }: Props) {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editPhone, setEditPhone] = useState("");
+  const [savingId, setSavingId] = useState<number | null>(null);
+
+  const missingPhoneCount = players.filter((p) => !p.phone?.trim()).length;
 
   async function addPlayer(e: React.FormEvent) {
     e.preventDefault();
@@ -54,24 +60,35 @@ export default function PlayerManager({ players, onUpdated }: Props) {
     onUpdated();
   }
 
-  async function editPhone(player: Player) {
-    const next = prompt(
-      `Numero di telefono per ${player.name}:`,
-      player.phone ?? ""
-    );
-    if (next === null) return;
-
-    const res = await fetch(`/api/players/${player.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone: next }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error);
-      return;
+  async function savePhone(playerId: number) {
+    setSavingId(playerId);
+    setError("");
+    try {
+      const res = await fetch(`/api/players/${playerId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: editPhone }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setEditingId(null);
+      setEditPhone("");
+      onUpdated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore");
+    } finally {
+      setSavingId(null);
     }
-    onUpdated();
+  }
+
+  function startEditing(player: Player) {
+    setEditingId(player.id);
+    setEditPhone(player.phone ?? "");
+  }
+
+  function cancelEditing() {
+    setEditingId(null);
+    setEditPhone("");
   }
 
   return (
@@ -142,6 +159,14 @@ export default function PlayerManager({ players, onUpdated }: Props) {
         </p>
       )}
 
+      {missingPhoneCount > 0 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {missingPhoneCount === 1
+            ? "1 giocatore senza telefono — aggiungilo dalla tabella sotto."
+            : `${missingPhoneCount} giocatori senza telefono — aggiungili dalla tabella sotto.`}
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-xl border border-border-accent bg-surface shadow-sm">
         <table className="w-full text-left text-sm">
           <thead className="bg-dark text-on-dark">
@@ -162,11 +187,51 @@ export default function PlayerManager({ players, onUpdated }: Props) {
             ) : (
               players.map((p) => {
                 const href = phoneHref(p.phone);
+                const isEditing = editingId === p.id;
+                const missingPhone = !p.phone?.trim();
+
                 return (
-                  <tr key={p.id} className="border-t border-border">
-                    <td className="px-4 py-3 font-medium">{p.name}</td>
+                  <tr
+                    key={p.id}
+                    className={`border-t border-border ${
+                      missingPhone ? "bg-amber-50/60" : ""
+                    }`}
+                  >
+                    <td className="px-4 py-3 font-medium">
+                      {displayPlayerName(p.name)}
+                    </td>
                     <td className="px-4 py-3">
-                      {href ? (
+                      {isEditing ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <input
+                            type="tel"
+                            value={editPhone}
+                            onChange={(e) => setEditPhone(e.target.value)}
+                            placeholder="333 1234567"
+                            autoFocus
+                            className="w-full min-w-[10rem] max-w-xs rounded-lg border border-border px-3 py-1.5 text-sm focus:border-accent focus:outline-none"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") savePhone(p.id);
+                              if (e.key === "Escape") cancelEditing();
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => savePhone(p.id)}
+                            disabled={savingId === p.id}
+                            className="rounded bg-accent px-2 py-1 text-xs font-semibold text-white hover:bg-accent-hover disabled:opacity-50"
+                          >
+                            {savingId === p.id ? "Salvo..." : "Salva"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEditing}
+                            className="rounded border border-border px-2 py-1 text-xs font-medium text-ink-secondary hover:bg-surface-alt"
+                          >
+                            Annulla
+                          </button>
+                        </div>
+                      ) : href ? (
                         <a
                           href={href}
                           className="font-medium text-accent-dark hover:underline"
@@ -174,9 +239,7 @@ export default function PlayerManager({ players, onUpdated }: Props) {
                           {formatPhoneDisplay(p.phone)}
                         </a>
                       ) : (
-                        <span className="text-ink-muted">
-                          {formatPhoneDisplay(p.phone)}
-                        </span>
+                        <span className="text-ink-muted">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-ink-muted">
@@ -184,13 +247,19 @@ export default function PlayerManager({ players, onUpdated }: Props) {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => editPhone(p)}
-                          className="rounded bg-accent-muted px-2 py-1 text-xs font-medium text-accent-dark hover:bg-accent-muted/80"
-                        >
-                          Telefono
-                        </button>
+                        {!isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => startEditing(p)}
+                            className={`rounded px-2 py-1 text-xs font-medium ${
+                              missingPhone
+                                ? "bg-accent text-white hover:bg-accent-hover"
+                                : "bg-accent-muted text-accent-dark hover:bg-accent-muted/80"
+                            }`}
+                          >
+                            {missingPhone ? "Aggiungi telefono" : "Modifica"}
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => removePlayer(p.id)}

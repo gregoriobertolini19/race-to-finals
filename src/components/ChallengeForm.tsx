@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { displayPlayerName } from "@/lib/player-name";
 import type { TournamentEntry } from "@/lib/types";
 import { formatPhoneDisplay, phoneHref } from "@/lib/phone";
 
@@ -97,7 +98,7 @@ export default function ChallengeForm({
             <option value="">Seleziona...</option>
             {activeEntries.map((e) => (
               <option key={e.player_id} value={e.player_id}>
-                #{e.position} {e.name}
+                #{e.position} {displayPlayerName(e.name)}
               </option>
             ))}
           </select>
@@ -117,7 +118,7 @@ export default function ChallengeForm({
             <option value="">Seleziona...</option>
             {opponents.map((e) => (
               <option key={e.player_id} value={e.player_id}>
-                #{e.position} {e.name}
+                #{e.position} {displayPlayerName(e.name)}
                 {e.phone ? ` · ${e.phone}` : ""}
               </option>
             ))}
@@ -127,7 +128,7 @@ export default function ChallengeForm({
         {selectedOpponent && (
           <div className="sm:col-span-2 rounded-lg border border-border-accent bg-accent-subtle px-4 py-3 text-sm">
             <p className="font-medium text-ink">
-              Contatta {selectedOpponent.name}
+              Contatta {displayPlayerName(selectedOpponent.name)}
             </p>
             {phoneHref(selectedOpponent.phone) ? (
               <a
@@ -138,8 +139,9 @@ export default function ChallengeForm({
               </a>
             ) : (
               <p className="mt-1 text-ink-muted">
-                Nessun telefono in anagrafica — chiedi a {selectedOpponent.name}{" "}
-                di aggiornarlo in Giocatori.
+                Nessun telefono in anagrafica — chiedi a{" "}
+                {displayPlayerName(selectedOpponent.name)} di aggiornarlo in
+                Giocatori.
               </p>
             )}
           </div>

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { fetchJson } from "@/lib/fetch-json";
 import type { TournamentEntry } from "@/lib/types";
 import { formatPhoneDisplay, phoneHref } from "@/lib/phone";
+import { displayPlayerName } from "@/lib/player-name";
 
 interface Props {
   tournamentId: number;
@@ -116,7 +117,7 @@ export default function AvailableOpponentsList({
                 <span className="mr-2 font-mono text-ink-muted">
                   #{opponent.position}
                 </span>
-                {opponent.name}
+                {displayPlayerName(opponent.name)}
               </p>
               <p className="mt-0.5 text-xs text-ink-muted">Disponibile</p>
             </div>

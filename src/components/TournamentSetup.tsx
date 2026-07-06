@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Player, Tournament, TournamentEntry } from "@/lib/types";
+import { displayPlayerName } from "@/lib/player-name";
 
 interface Props {
   tournament: Tournament;
@@ -188,7 +189,7 @@ export default function TournamentSetup({
                   disabled={loading}
                   className="rounded-lg border border-border-accent bg-accent-subtle px-3 py-1.5 text-sm font-medium text-accent-dark hover:bg-accent-muted disabled:opacity-50"
                 >
-                  + {p.name}
+                  + {displayPlayerName(p.name)}
                 </button>
               ))}
             </div>
@@ -262,7 +263,7 @@ export default function TournamentSetup({
                       <span className="font-mono font-bold">{e.position}</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-medium">{e.name}</td>
+                  <td className="px-4 py-3 font-medium">{displayPlayerName(e.name)}</td>
                   {isDraft && (
                     <td className="px-4 py-3">
                       <button

@@ -1,5 +1,6 @@
-import { getSql } from "./db";
-import { getTournamentEntry, requireTournament } from "./tournaments";
+import { getSql, type TransactionSql } from "./db";
+import { reverseChallengeResult, applyChallengeResult } from "./ranking";
+import { getTournamentEntry, requirePlayableTournament } from "./tournaments";
 import type { Challenge, TournamentEntry } from "./types";
 
 const CHALLENGE_RANGE = 5;
@@ -159,6 +160,230 @@ export async function recordResult(
     SET status = 'completed', winner_id = ${winnerId}, score = ${score}, completed_at = NOW()
     WHERE id = ${challengeId}
   `;
+
+  const challenges = await getTournamentChallenges(challenge.tournament_id);
+  return challenges.find((c) => c.id === challengeId)!;
+}
+
+async function resolvePositionsForUndo(
+  challenge: Challenge,
+  winnerId: number,
+  loserId: number,
+  tx: TransactionSql
+): Promise<{ winnerPos: number; loserPos: number }> {
+  if (
+    challenge.winner_position_before != null &&
+    challenge.loser_position_before != null
+  ) {
+    return {
+      winnerPos: challenge.winner_position_before,
+      loserPos: challenge.loser_position_before,
+    };
+  }
+
+  const winner = await getTournamentEntry(
+    challenge.tournament_id,
+    winnerId,
+    tx
+  );
+  const loser = await getTournamentEntry(challenge.tournament_id, loserId, tx);
+  if (!winner || !loser) {
+    throw new Error("Giocatore non trovato nel torneo");
+  }
+
+  if (winner.position < loser.position) {
+    return {
+      loserPos: winner.position,
+      winnerPos: loser.position + (loser.position - winner.position),
+    };
+  }
+
+  return {
+    winnerPos: winner.position + 1,
+    loserPos: loser.position,
+  };
+}
+
+async function undoRankingIfApplied(
+  challenge: Challenge,
+  tx: TransactionSql
+): Promise<void> {
+  if (!challenge.ranking_applied) return;
+
+  const winnerId = challenge.winner_id;
+  if (!winnerId) throw new Error("Risultato non valido");
+
+  const loserId =
+    winnerId === challenge.challenger_id
+      ? challenge.challenged_id
+      : challenge.challenger_id;
+
+  const { winnerPos, loserPos } = await resolvePositionsForUndo(
+    challenge,
+    winnerId,
+    loserId,
+    tx
+  );
+
+  await reverseChallengeResult(
+    challenge.tournament_id,
+    winnerId,
+    loserId,
+    winnerPos,
+    loserPos,
+    tx
+  );
+}
+
+export async function deleteChallenge(challengeId: number): Promise<void> {
+  const sql = getSql();
+  const rows = await sql<Challenge[]>`
+    SELECT * FROM challenges WHERE id = ${challengeId}
+  `;
+  const challenge = rows[0];
+
+  if (!challenge) throw new Error("Sfida non trovata");
+  if (challenge.status === "cancelled") {
+    throw new Error("Sfida già annullata");
+  }
+
+  await requirePlayableTournament(challenge.tournament_id);
+
+  await sql.begin(async (tx) => {
+    if (challenge.status === "completed") {
+      await undoRankingIfApplied(challenge, tx);
+    }
+
+    await tx`DELETE FROM challenges WHERE id = ${challengeId}`;
+
+    await tx`
+      UPDATE tournament_entries SET status = 'active'
+      WHERE tournament_id = ${challenge.tournament_id}
+      AND player_id IN (${challenge.challenger_id}, ${challenge.challenged_id})
+    `;
+  });
+}
+
+export async function updateChallengeResult(
+  challengeId: number,
+  winnerId: number,
+  score: string
+): Promise<Challenge> {
+  const sql = getSql();
+  const rows = await sql<Challenge[]>`
+    SELECT * FROM challenges WHERE id = ${challengeId}
+  `;
+  const challenge = rows[0];
+
+  if (!challenge) throw new Error("Sfida non trovata");
+  if (challenge.status !== "completed") {
+    throw new Error("Solo le sfide concluse possono essere modificate");
+  }
+  if (
+    winnerId !== challenge.challenger_id &&
+    winnerId !== challenge.challenged_id
+  ) {
+    throw new Error("Vincitore non valido");
+  }
+
+  await requirePlayableTournament(challenge.tournament_id);
+
+  const wasRankingApplied = challenge.ranking_applied;
+  const loserId =
+    winnerId === challenge.challenger_id
+      ? challenge.challenged_id
+      : challenge.challenger_id;
+
+  await sql.begin(async (tx) => {
+    if (wasRankingApplied) {
+      await undoRankingIfApplied(challenge, tx);
+    }
+
+    await tx`
+      UPDATE challenges
+      SET winner_id = ${winnerId},
+          score = ${score},
+          completed_at = NOW(),
+          ranking_applied = FALSE,
+          winner_position_before = NULL,
+          loser_position_before = NULL
+      WHERE id = ${challengeId}
+    `;
+
+    if (wasRankingApplied) {
+      const winner = await getTournamentEntry(
+        challenge.tournament_id,
+        winnerId,
+        tx
+      );
+      const loser = await getTournamentEntry(
+        challenge.tournament_id,
+        loserId,
+        tx
+      );
+      if (!winner || !loser) throw new Error("Giocatore non trovato nel torneo");
+
+      await tx`
+        UPDATE challenges
+        SET winner_position_before = ${winner.position},
+            loser_position_before = ${loser.position}
+        WHERE id = ${challengeId}
+      `;
+
+      await applyChallengeResult(
+        challenge.tournament_id,
+        winnerId,
+        loserId,
+        tx
+      );
+
+      await tx`
+        UPDATE challenges SET ranking_applied = TRUE WHERE id = ${challengeId}
+      `;
+    }
+  });
+
+  const challenges = await getTournamentChallenges(challenge.tournament_id);
+  return challenges.find((c) => c.id === challengeId)!;
+}
+
+export async function revertChallengeResult(
+  challengeId: number
+): Promise<Challenge> {
+  const sql = getSql();
+  const rows = await sql<Challenge[]>`
+    SELECT * FROM challenges WHERE id = ${challengeId}
+  `;
+  const challenge = rows[0];
+
+  if (!challenge) throw new Error("Sfida non trovata");
+  if (challenge.status !== "completed") {
+    throw new Error("Solo le sfide concluse possono essere annullate");
+  }
+
+  await requirePlayableTournament(challenge.tournament_id);
+
+  await sql.begin(async (tx) => {
+    await undoRankingIfApplied(challenge, tx);
+
+    await tx`
+      UPDATE challenges
+      SET status = 'active',
+          winner_id = NULL,
+          score = NULL,
+          completed_at = NULL,
+          ranking_applied = FALSE,
+          winner_position_before = NULL,
+          loser_position_before = NULL
+      WHERE id = ${challengeId}
+    `;
+
+    await tx`
+      UPDATE tournament_entries SET status = 'in_challenge'
+      WHERE tournament_id = ${challenge.tournament_id}
+      AND player_id IN (${challenge.challenger_id}, ${challenge.challenged_id})
+    `;
+  });
 
   const challenges = await getTournamentChallenges(challenge.tournament_id);
   return challenges.find((c) => c.id === challengeId)!;

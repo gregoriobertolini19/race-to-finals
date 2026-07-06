@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import PlayerHeader from "@/components/PlayerHeader";
 import PlayerPicker from "@/components/PlayerPicker";
+import PlayerAuthGate from "@/components/PlayerAuthGate";
 import AvailableOpponentsList from "@/components/AvailableOpponentsList";
 import RankingTable from "@/components/RankingTable";
 import { fetchJson } from "@/lib/fetch-json";
@@ -18,6 +19,10 @@ type RankingResponse = {
   entries: TournamentEntry[];
 };
 
+type PlayerAuthResponse = {
+  authenticated: boolean;
+};
+
 export default function PlayerViewPage() {
   const params = useParams();
   const router = useRouter();
@@ -27,6 +32,8 @@ export default function PlayerViewPage() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [entries, setEntries] = useState<TournamentEntry[]>([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState("");
+  const [playerAuthed, setPlayerAuthed] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -57,6 +64,17 @@ export default function PlayerViewPage() {
     load();
   }, [load]);
 
+  const checkPlayerAuth = useCallback(async () => {
+    setCheckingAuth(true);
+    const result = await fetchJson<PlayerAuthResponse>("/api/auth/player");
+    setPlayerAuthed(result.ok && result.data.authenticated);
+    setCheckingAuth(false);
+  }, []);
+
+  useEffect(() => {
+    checkPlayerAuth();
+  }, [checkPlayerAuth]);
+
   useEffect(() => {
     const stored = getStoredPlayerId(tournamentId);
     if (stored) setSelectedPlayerId(String(stored));
@@ -77,6 +95,11 @@ export default function PlayerViewPage() {
       entries.find((e) => String(e.player_id) === selectedPlayerId) ?? null,
     [entries, selectedPlayerId]
   );
+
+  async function handlePlayerAuthenticated() {
+    setPlayerAuthed(true);
+    await load();
+  }
 
   const isPlayable = tournament?.status === "active";
 
@@ -141,10 +164,15 @@ export default function PlayerViewPage() {
               value={selectedPlayerId}
               onChange={setSelectedPlayerId}
             />
-            <AvailableOpponentsList
-              tournamentId={tournamentId}
-              player={selectedPlayer}
-            />
+            {selectedPlayer && !checkingAuth && !playerAuthed && (
+              <PlayerAuthGate onAuthenticated={handlePlayerAuthenticated} />
+            )}
+            {selectedPlayer && playerAuthed && (
+              <AvailableOpponentsList
+                tournamentId={tournamentId}
+                player={selectedPlayer}
+              />
+            )}
           </>
         )}
 
