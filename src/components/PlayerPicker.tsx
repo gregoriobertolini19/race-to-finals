@@ -1,5 +1,6 @@
 "use client";
 
+import FieldSelect from "@/components/FieldSelect";
 import { displayPlayerName } from "@/lib/player-name";
 import type { TournamentEntry } from "@/lib/types";
 
@@ -19,18 +20,20 @@ export default function PlayerPicker({ entries, value, onChange }: Props) {
         Seleziona il tuo nome per vedere chi puoi sfidare. Ti verrà chiesta la
         password del torneo. La scelta resta salvata su questo dispositivo.
       </p>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-4 w-full rounded-lg border border-border px-3 py-2.5 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-      >
-        <option value="">Seleziona il tuo nome...</option>
-        {sorted.map((e) => (
-          <option key={e.player_id} value={e.player_id}>
-            #{e.position} {displayPlayerName(e.name)}
-          </option>
-        ))}
-      </select>
+      <div className="mt-4">
+        <FieldSelect
+          label="Il tuo nome"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        >
+          <option value="">Seleziona il tuo nome...</option>
+          {sorted.map((e) => (
+            <option key={e.player_id} value={e.player_id}>
+              #{e.position} {displayPlayerName(e.name)}
+            </option>
+          ))}
+        </FieldSelect>
+      </div>
     </div>
   );
 }
