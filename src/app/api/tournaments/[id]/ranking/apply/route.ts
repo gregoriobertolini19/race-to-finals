@@ -5,6 +5,7 @@ import {
 } from "@/lib/match-stats";
 import { applyPendingRankingUpdates } from "@/lib/ranking";
 import {
+  getTournamentById,
   getTournamentEntries,
   requireTournament,
 } from "@/lib/tournaments";
@@ -33,7 +34,7 @@ export async function POST(
 
     return NextResponse.json({
       ...result,
-      tournament,
+      tournament: await getTournamentById(tournamentId),
       entries,
       message:
         result.applied > 0

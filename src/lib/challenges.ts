@@ -1,4 +1,5 @@
 import { getSql, type TransactionSql } from "./db";
+import { ensureRankingSnapshotColumns } from "./ensure-schema";
 import { reverseChallengeResult, applyChallengeResult } from "./ranking";
 import { getTournamentEntry, requirePlayableTournament } from "./tournaments";
 import type { Challenge, TournamentEntry } from "./types";
@@ -261,6 +262,8 @@ export async function deleteChallenge(challengeId: number): Promise<void> {
 
   await requirePlayableTournament(challenge.tournament_id);
 
+  await ensureRankingSnapshotColumns();
+
   await sql.begin(async (tx) => {
     if (challenge.status === "completed") {
       await undoRankingIfApplied(challenge, tx);
@@ -299,6 +302,8 @@ export async function updateChallengeResult(
   }
 
   await requirePlayableTournament(challenge.tournament_id);
+
+  await ensureRankingSnapshotColumns();
 
   const wasRankingApplied = challenge.ranking_applied;
   const loserId =
@@ -374,6 +379,8 @@ export async function revertChallengeResult(
   }
 
   await requirePlayableTournament(challenge.tournament_id);
+
+  await ensureRankingSnapshotColumns();
 
   await sql.begin(async (tx) => {
     await undoRankingIfApplied(challenge, tx);

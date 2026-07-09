@@ -1,4 +1,5 @@
 import { getSql, type Sql, type TransactionSql } from "./db";
+import { ensureRankingSnapshotColumns } from "./ensure-schema";
 import { getTournamentEntry, requireTournament } from "./tournaments";
 import type { Challenge } from "./types";
 
@@ -15,6 +16,7 @@ export async function applyChallengeResult(
   const winnerPos = winner.position;
   const loserPos = loser.position;
 
+  // Solo se il vincitore era dietro in classifica (numero posizione maggiore)
   if (winnerPos > loserPos) {
     await sql`
       UPDATE tournament_entries SET position = position + 1
@@ -24,17 +26,6 @@ export async function applyChallengeResult(
     `;
     await sql`
       UPDATE tournament_entries SET position = ${loserPos}
-      WHERE tournament_id = ${tournamentId} AND player_id = ${winnerId}
-    `;
-  } else if (winnerPos < loserPos) {
-    await sql`
-      UPDATE tournament_entries SET position = position + 1
-      WHERE tournament_id = ${tournamentId}
-      AND position >= ${winnerPos - 1} AND position < ${winnerPos}
-      AND player_id != ${winnerId}
-    `;
-    await sql`
-      UPDATE tournament_entries SET position = ${winnerPos - 1}
       WHERE tournament_id = ${tournamentId} AND player_id = ${winnerId}
     `;
   }
@@ -53,17 +44,6 @@ export async function reverseChallengeResult(
       UPDATE tournament_entries SET position = position - 1
       WHERE tournament_id = ${tournamentId}
       AND position > ${loserPos} AND position <= ${winnerPos}
-      AND player_id != ${winnerId}
-    `;
-    await sql`
-      UPDATE tournament_entries SET position = ${winnerPos}
-      WHERE tournament_id = ${tournamentId} AND player_id = ${winnerId}
-    `;
-  } else if (winnerPos < loserPos) {
-    await sql`
-      UPDATE tournament_entries SET position = position - 1
-      WHERE tournament_id = ${tournamentId}
-      AND position > ${winnerPos - 1} AND position <= ${winnerPos}
       AND player_id != ${winnerId}
     `;
     await sql`
@@ -131,6 +111,7 @@ export async function applyPendingRankingUpdates(
   tournamentId: number
 ): Promise<{ applied: number; penalties: number }> {
   await requireTournament(tournamentId);
+  await ensureRankingSnapshotColumns();
   const sql = getSql();
 
   const pending = await sql<Challenge[]>`
