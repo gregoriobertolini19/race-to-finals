@@ -205,9 +205,17 @@ async function resolvePositionsForUndo(
   }
 
   if (winner.position < loser.position) {
+    const gap = loser.position - winner.position;
+    if (gap > 1) {
+      // Sfidato aveva vinto: era salito di una posizione
+      return {
+        winnerPos: winner.position + 1,
+        loserPos: loser.position,
+      };
+    }
     return {
       loserPos: winner.position,
-      winnerPos: loser.position + (loser.position - winner.position),
+      winnerPos: loser.position + gap,
     };
   }
 

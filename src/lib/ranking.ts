@@ -16,8 +16,8 @@ export async function applyChallengeResult(
   const winnerPos = winner.position;
   const loserPos = loser.position;
 
-  // Solo se il vincitore era dietro in classifica (numero posizione maggiore)
   if (winnerPos > loserPos) {
+    // Sfidante vince (sorpasso): sale alla posizione dello sfidato
     await sql`
       UPDATE tournament_entries SET position = position + 1
       WHERE tournament_id = ${tournamentId}
@@ -28,7 +28,60 @@ export async function applyChallengeResult(
       UPDATE tournament_entries SET position = ${loserPos}
       WHERE tournament_id = ${tournamentId} AND player_id = ${winnerId}
     `;
+  } else if (winnerPos < loserPos) {
+    // Sfidato vince (era davanti): guadagna una posizione
+    await movePlayerUpOne(tournamentId, winnerId, winnerPos, sql);
   }
+}
+
+/** Scambia il giocatore con chi è subito sopra (es. da #8 a #7). */
+async function movePlayerUpOne(
+  tournamentId: number,
+  playerId: number,
+  currentPosition: number,
+  sql: Sql | TransactionSql
+): Promise<void> {
+  if (currentPosition <= 1) return;
+
+  const newPosition = currentPosition - 1;
+  const tempPosition = currentPosition + 1_000_000;
+
+  await sql`
+    UPDATE tournament_entries SET position = ${tempPosition}
+    WHERE tournament_id = ${tournamentId} AND player_id = ${playerId}
+  `;
+  await sql`
+    UPDATE tournament_entries SET position = ${currentPosition}
+    WHERE tournament_id = ${tournamentId} AND position = ${newPosition}
+  `;
+  await sql`
+    UPDATE tournament_entries SET position = ${newPosition}
+    WHERE tournament_id = ${tournamentId} AND player_id = ${playerId}
+  `;
+}
+
+/** Annulla movePlayerUpOne (es. da #7 torna a #8). */
+async function movePlayerDownOne(
+  tournamentId: number,
+  playerId: number,
+  currentPosition: number,
+  sql: Sql | TransactionSql
+): Promise<void> {
+  const belowPosition = currentPosition + 1;
+  const tempPosition = currentPosition + 1_000_000;
+
+  await sql`
+    UPDATE tournament_entries SET position = ${tempPosition}
+    WHERE tournament_id = ${tournamentId} AND player_id = ${playerId}
+  `;
+  await sql`
+    UPDATE tournament_entries SET position = ${currentPosition}
+    WHERE tournament_id = ${tournamentId} AND position = ${belowPosition}
+  `;
+  await sql`
+    UPDATE tournament_entries SET position = ${belowPosition}
+    WHERE tournament_id = ${tournamentId} AND player_id = ${playerId}
+  `;
 }
 
 export async function reverseChallengeResult(
@@ -50,6 +103,8 @@ export async function reverseChallengeResult(
       UPDATE tournament_entries SET position = ${winnerPos}
       WHERE tournament_id = ${tournamentId} AND player_id = ${winnerId}
     `;
+  } else if (winnerPos < loserPos && winnerPos > 1) {
+    await movePlayerDownOne(tournamentId, winnerId, winnerPos - 1, sql);
   }
 }
 
