@@ -7,6 +7,7 @@ import PlayerPicker from "@/components/PlayerPicker";
 import PlayerAuthGate from "@/components/PlayerAuthGate";
 import AvailableOpponentsList from "@/components/AvailableOpponentsList";
 import RankingTable from "@/components/RankingTable";
+import ExportRankingPdfButton from "@/components/ExportRankingPdfButton";
 import { fetchJson } from "@/lib/fetch-json";
 import {
   getStoredPlayerId,
@@ -41,39 +42,32 @@ export default function PlayerViewPage() {
     setLoading(true);
     setError("");
 
-    const result = await fetchJson<RankingResponse>(
-      `/api/tournaments/${id}/ranking`
-    );
+    const [rankingResult, authResult] = await Promise.all([
+      fetchJson<RankingResponse>(`/api/tournaments/${id}/ranking`),
+      fetchJson<PlayerAuthResponse>("/api/auth/player"),
+    ]);
 
-    if (!result.ok) {
-      if (result.error.includes("non è ancora")) {
+    setPlayerAuthed(authResult.ok && authResult.data.authenticated);
+    setCheckingAuth(false);
+
+    if (!rankingResult.ok) {
+      if (rankingResult.error.includes("non è ancora")) {
         router.replace(`/tornei/${id}/impostazioni`);
         return;
       }
-      setError(result.error);
+      setError(rankingResult.error);
       setLoading(false);
       return;
     }
 
-    setTournament(result.data.tournament);
-    setEntries(result.data.entries ?? []);
+    setTournament(rankingResult.data.tournament);
+    setEntries(rankingResult.data.entries ?? []);
     setLoading(false);
   }, [id, router]);
 
   useEffect(() => {
     load();
   }, [load]);
-
-  const checkPlayerAuth = useCallback(async () => {
-    setCheckingAuth(true);
-    const result = await fetchJson<PlayerAuthResponse>("/api/auth/player");
-    setPlayerAuthed(result.ok && result.data.authenticated);
-    setCheckingAuth(false);
-  }, []);
-
-  useEffect(() => {
-    checkPlayerAuth();
-  }, [checkPlayerAuth]);
 
   useEffect(() => {
     const stored = getStoredPlayerId(tournamentId);
@@ -149,12 +143,18 @@ export default function PlayerViewPage() {
     <>
       <PlayerHeader tournamentName={tournament.name} />
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">Classifica</h1>
-          <p className="mt-1 text-sm text-ink-muted">
-            Top 8 alle Finals
-            {tournament.status === "completed" && " · Torneo concluso"}
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-ink">Classifica</h1>
+            <p className="mt-1 text-sm text-ink-muted">
+              Top 8 alle Finals
+              {tournament.status === "completed" && " · Torneo concluso"}
+            </p>
+          </div>
+          <ExportRankingPdfButton
+            tournament={tournament}
+            entries={entries}
+          />
         </div>
 
         {isPlayable && (

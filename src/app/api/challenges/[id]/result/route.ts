@@ -12,6 +12,12 @@ export async function POST(
   try {
     const { id } = await params;
     const { winnerId, score } = await request.json();
+    if (!winnerId) {
+      return NextResponse.json(
+        { error: "Seleziona il vincitore" },
+        { status: 400 }
+      );
+    }
     const challenge = await recordResult(parseInt(id, 10), winnerId, score);
     return NextResponse.json(challenge);
   } catch (e) {
@@ -27,6 +33,12 @@ export async function PATCH(
   try {
     const { id } = await params;
     const { winnerId, score } = await request.json();
+    if (!winnerId) {
+      return NextResponse.json(
+        { error: "Seleziona il vincitore" },
+        { status: 400 }
+      );
+    }
     const challenge = await updateChallengeResult(
       parseInt(id, 10),
       winnerId,

@@ -10,7 +10,6 @@ import {
   groupChallengesByPlayWeek,
   isCurrentWeek,
 } from "@/lib/weeks";
-import { parseScore, resolveMatchResult } from "@/lib/score";
 import { displayPlayerName } from "@/lib/player-name";
 import { fetchJson } from "@/lib/fetch-json";
 
@@ -71,18 +70,14 @@ export default function WeeklyChallenges({
     });
   }, [challenges, tournament.started_at]);
 
-  async function submitResult(
-    challengeId: number,
-    winnerId: number,
-    score: string
-  ) {
+  async function submitResult(challengeId: number, winnerId: number) {
     setLoadingId(challengeId);
     setError("");
     try {
       const res = await fetch(`/api/challenges/${challengeId}/result`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ winnerId, score }),
+        body: JSON.stringify({ winnerId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -94,18 +89,14 @@ export default function WeeklyChallenges({
     }
   }
 
-  async function updateResult(
-    challengeId: number,
-    winnerId: number,
-    score: string
-  ) {
+  async function updateResult(challengeId: number, winnerId: number) {
     setLoadingId(challengeId);
     setError("");
     try {
       const res = await fetch(`/api/challenges/${challengeId}/result`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ winnerId, score }),
+        body: JSON.stringify({ winnerId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -257,95 +248,69 @@ function DeleteChallengeButton({
   );
 }
 
-function ScoreForm({
+function WinnerForm({
   challenge: c,
   loading,
-  initialChallengerScore,
-  initialChallengedScore,
   submitLabel,
+  selectedWinnerId,
   onSubmit,
   onCancel,
 }: {
   challenge: Challenge;
   loading: boolean;
-  initialChallengerScore?: string;
-  initialChallengedScore?: string;
   submitLabel: string;
-  onSubmit: (id: number, winnerId: number, score: string) => void;
+  selectedWinnerId?: number | null;
+  onSubmit: (id: number, winnerId: number) => void;
   onCancel?: () => void;
 }) {
-  const [challengerScore, setChallengerScore] = useState(
-    initialChallengerScore ?? ""
+  const [winnerId, setWinnerId] = useState<number | null>(
+    selectedWinnerId ?? null
   );
-  const [challengedScore, setChallengedScore] = useState(
-    initialChallengedScore ?? ""
-  );
-  const [localError, setLocalError] = useState("");
-
-  function handleConfirm() {
-    setLocalError("");
-    const result = resolveMatchResult(
-      c.challenger_id,
-      c.challenged_id,
-      parseInt(challengerScore, 10),
-      parseInt(challengedScore, 10)
-    );
-    if ("error" in result) {
-      setLocalError(result.error);
-      return;
-    }
-    onSubmit(c.id, result.winnerId, result.score);
-  }
-
-  const canSubmit =
-    challengerScore.trim() !== "" &&
-    challengedScore.trim() !== "" &&
-    !loading;
 
   return (
     <div className="rounded-lg border border-border bg-surface-alt p-3">
       <p className="mb-3 text-xs font-medium text-ink-muted">
-        Inserisci i game vinti (es. 6-4, 7-5). Il vincitore viene calcolato
-        automaticamente.
+        Seleziona chi ha vinto la partita.
       </p>
-      <div className="space-y-2">
-        <label className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <span className="min-w-0 flex-1 text-sm font-medium text-ink">
-              {displayPlayerName(c.challenger_name ?? "")}
-            </span>
-          <input
-            type="number"
-            min={0}
-            inputMode="numeric"
-            placeholder="0"
-            value={challengerScore}
-            onChange={(e) => setChallengerScore(e.target.value)}
-            className="w-20 rounded-lg border border-border bg-surface px-3 py-1.5 text-center text-sm focus:border-accent focus:outline-none"
-          />
-        </label>
-        <label className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <span className="min-w-0 flex-1 text-sm font-medium text-ink">
-              {displayPlayerName(c.challenged_name ?? "")}
-            </span>
-          <input
-            type="number"
-            min={0}
-            inputMode="numeric"
-            placeholder="0"
-            value={challengedScore}
-            onChange={(e) => setChallengedScore(e.target.value)}
-            className="w-20 rounded-lg border border-border bg-surface px-3 py-1.5 text-center text-sm focus:border-accent focus:outline-none"
-          />
-        </label>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => setWinnerId(c.challenger_id)}
+          className={`rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition ${
+            winnerId === c.challenger_id
+              ? "border-accent bg-accent text-white"
+              : "border-border bg-surface text-ink hover:border-accent hover:bg-accent-subtle"
+          }`}
+        >
+          <span className="block text-xs opacity-80">
+            #{c.challenger_position}
+          </span>
+          {displayPlayerName(c.challenger_name ?? "")}
+        </button>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => setWinnerId(c.challenged_id)}
+          className={`rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition ${
+            winnerId === c.challenged_id
+              ? "border-accent bg-accent text-white"
+              : "border-border bg-surface text-ink hover:border-accent hover:bg-accent-subtle"
+          }`}
+        >
+          <span className="block text-xs opacity-80">
+            #{c.challenged_position}
+          </span>
+          {displayPlayerName(c.challenged_name ?? "")}
+        </button>
       </div>
-      {localError && (
-        <p className="mt-2 text-xs text-red-600">{localError}</p>
-      )}
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={!canSubmit}
-          onClick={handleConfirm}
+          disabled={winnerId == null || loading}
+          onClick={() => {
+            if (winnerId != null) onSubmit(c.id, winnerId);
+          }}
           className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-50"
         >
           {loading ? "Salvo..." : submitLabel}
@@ -373,7 +338,7 @@ function ActiveRow({
 }: {
   challenge: Challenge;
   loading: boolean;
-  onSubmit: (id: number, winnerId: number, score: string) => void;
+  onSubmit: (id: number, winnerId: number) => void;
   onDelete: () => void;
 }) {
   return (
@@ -404,10 +369,10 @@ function ActiveRow({
         </span>
       </div>
 
-      <ScoreForm
+      <WinnerForm
         challenge={c}
         loading={loading}
-        submitLabel="Conferma risultato"
+        submitLabel="Conferma vincitore"
         onSubmit={onSubmit}
       />
     </div>
@@ -422,11 +387,10 @@ function CompletedRow({
 }: {
   challenge: Challenge;
   loading: boolean;
-  onUpdate: (id: number, winnerId: number, score: string) => void;
+  onUpdate: (id: number, winnerId: number) => void;
   onDelete: () => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const parsed = parseScore(c.score);
   const winnerName = displayPlayerName(
     (c.winner_id === c.challenger_id
       ? c.challenger_name
@@ -437,19 +401,14 @@ function CompletedRow({
     return (
       <div className="space-y-3">
         <MatchTitle c={c} />
-        <ScoreForm
-          key={`edit-${c.id}-${c.score}`}
+        <WinnerForm
+          key={`edit-${c.id}-${c.winner_id}`}
           challenge={c}
           loading={loading}
-          initialChallengerScore={
-            parsed ? String(parsed.challengerScore) : undefined
-          }
-          initialChallengedScore={
-            parsed ? String(parsed.challengedScore) : undefined
-          }
+          selectedWinnerId={c.winner_id}
           submitLabel="Salva modifiche"
-          onSubmit={(id, winnerId, score) => {
-            onUpdate(id, winnerId, score);
+          onSubmit={(id, winnerId) => {
+            onUpdate(id, winnerId);
             setEditing(false);
           }}
           onCancel={() => setEditing(false)}

@@ -149,7 +149,7 @@ export async function createChallenge(
 export async function recordResult(
   challengeId: number,
   winnerId: number,
-  score: string
+  score?: string | null
 ): Promise<Challenge> {
   const sql = getSql();
   const rows = await sql<Challenge[]>`
@@ -168,9 +168,14 @@ export async function recordResult(
     throw new Error("Vincitore non valido");
   }
 
+  const normalizedScore = score?.trim() || null;
+
   await sql`
     UPDATE challenges
-    SET status = 'completed', winner_id = ${winnerId}, score = ${score}, completed_at = NOW()
+    SET status = 'completed',
+        winner_id = ${winnerId},
+        score = ${normalizedScore},
+        completed_at = NOW()
     WHERE id = ${challengeId}
   `;
 
@@ -290,7 +295,7 @@ export async function deleteChallenge(challengeId: number): Promise<void> {
 export async function updateChallengeResult(
   challengeId: number,
   winnerId: number,
-  score: string
+  score?: string | null
 ): Promise<Challenge> {
   const sql = getSql();
   const rows = await sql<Challenge[]>`
@@ -318,6 +323,7 @@ export async function updateChallengeResult(
     winnerId === challenge.challenger_id
       ? challenge.challenged_id
       : challenge.challenger_id;
+  const normalizedScore = score?.trim() || null;
 
   await sql.begin(async (tx) => {
     if (wasRankingApplied) {
@@ -327,7 +333,7 @@ export async function updateChallengeResult(
     await tx`
       UPDATE challenges
       SET winner_id = ${winnerId},
-          score = ${score},
+          score = ${normalizedScore},
           completed_at = NOW(),
           ranking_applied = FALSE,
           winner_position_before = NULL,
@@ -430,16 +436,22 @@ export async function cancelExpiredChallenges(
 
   if (expired.length === 0) return 0;
 
+  const challengeIds = expired.map((c) => c.id);
+  const playerIds = [
+    ...new Set(expired.flatMap((c) => [c.challenger_id, c.challenged_id])),
+  ];
+
   await sql.begin(async (tx) => {
-    for (const c of expired) {
-      await tx`UPDATE challenges SET status = 'cancelled' WHERE id = ${c.id}`;
-      await tx`
-        UPDATE tournament_entries SET status = 'active'
-        WHERE tournament_id = ${tournamentId}
-        AND player_id IN (${c.challenger_id}, ${c.challenged_id})
-        AND status = 'in_challenge'
-      `;
-    }
+    await tx`
+      UPDATE challenges SET status = 'cancelled'
+      WHERE id = ANY(${challengeIds})
+    `;
+    await tx`
+      UPDATE tournament_entries SET status = 'active'
+      WHERE tournament_id = ${tournamentId}
+      AND player_id = ANY(${playerIds})
+      AND status = 'in_challenge'
+    `;
   });
 
   return expired.length;
@@ -453,24 +465,25 @@ export async function getChallengeableOpponents(
   if (!player || player.status !== "active") return [];
 
   const sql = getSql();
-  const allPlayers = await sql<TournamentEntry[]>`
-    SELECT te.*, p.name, p.phone FROM tournament_entries te
+  return sql<TournamentEntry[]>`
+    SELECT te.*, p.name, p.phone
+    FROM tournament_entries te
     JOIN players p ON te.player_id = p.id
-    WHERE te.tournament_id = ${tournamentId} AND te.player_id != ${playerId}
-    AND te.status = 'active'
-    AND te.position < ${player.position}
-    AND te.position >= ${player.position - CHALLENGE_RANGE}
+    WHERE te.tournament_id = ${tournamentId}
+      AND te.player_id != ${playerId}
+      AND te.status = 'active'
+      AND te.position < ${player.position}
+      AND te.position >= ${player.position - CHALLENGE_RANGE}
+      AND NOT EXISTS (
+        SELECT 1 FROM challenges c
+        WHERE c.tournament_id = ${tournamentId}
+          AND c.status != 'cancelled'
+          AND (
+            (c.challenger_id = ${playerId} AND c.challenged_id = te.player_id)
+            OR (c.challenger_id = te.player_id AND c.challenged_id = ${playerId})
+          )
+          AND c.created_at > NOW() - (${MONTHLY_LIMIT_DAYS} || ' days')::interval
+      )
     ORDER BY te.position ASC
   `;
-
-  const results: TournamentEntry[] = [];
-  for (const opponent of allPlayers) {
-    const err = await validateChallenge(
-      tournamentId,
-      playerId,
-      opponent.player_id
-    );
-    if (err === null) results.push(opponent);
-  }
-  return results;
 }

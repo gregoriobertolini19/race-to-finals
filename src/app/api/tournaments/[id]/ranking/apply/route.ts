@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cancelExpiredChallenges } from "@/lib/challenges";
 import {
   attachMatchStatsToEntries,
   getTournamentMatchStats,
@@ -26,16 +27,18 @@ export async function POST(
       );
     }
 
+    await cancelExpiredChallenges(tournamentId);
     const result = await applyPendingRankingUpdates(tournamentId);
-    const entries = attachMatchStatsToEntries(
-      await getTournamentEntries(tournamentId),
-      await getTournamentMatchStats(tournamentId)
-    );
+    const [entries, matchStats, updatedTournament] = await Promise.all([
+      getTournamentEntries(tournamentId),
+      getTournamentMatchStats(tournamentId),
+      getTournamentById(tournamentId),
+    ]);
 
     return NextResponse.json({
       ...result,
-      tournament: await getTournamentById(tournamentId),
-      entries,
+      tournament: updatedTournament ?? tournament,
+      entries: attachMatchStatsToEntries(entries, matchStats),
       message:
         result.applied > 0
           ? `Classifica aggiornata: ${result.applied} sfide applicate`

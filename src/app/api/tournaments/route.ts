@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import {
   createTournament,
-  getActiveTournaments,
   getTournaments,
 } from "@/lib/tournaments";
 
 export async function GET() {
   try {
+    const tournaments = await getTournaments();
     return NextResponse.json({
-      tournaments: await getTournaments(),
-      active: await getActiveTournaments(),
+      tournaments,
+      active: tournaments.filter((t) => t.status === "active"),
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Errore database";

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import RankingTable from "@/components/RankingTable";
+import ExportRankingPdfButton from "@/components/ExportRankingPdfButton";
 import type { Tournament, TournamentEntry } from "@/lib/types";
 
 export default function TournamentRankingPage() {
@@ -31,11 +32,6 @@ export default function TournamentRankingPage() {
     }
     setTournament(data.tournament);
     setEntries(data.entries ?? []);
-    if (data.weeklyUpdate?.ran && data.weeklyUpdate.applied > 0) {
-      setWeeklyMessage(
-        `Classifica aggiornata automaticamente: ${data.weeklyUpdate.applied} sfide applicate`
-      );
-    }
   }, [id, router]);
 
   useEffect(() => {
@@ -92,35 +88,41 @@ export default function TournamentRankingPage() {
               {isActive && " · Aggiornamento ogni lunedì"}
             </p>
           </div>
-          {isActive && (
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href={`/tornei/${id}/gioca`}
-                className="rounded-lg border border-border-accent bg-surface px-4 py-2 text-sm font-medium text-accent-dark shadow-sm hover:bg-accent-subtle"
-              >
-                Vista giocatore
-              </Link>
-              <Link
-                href={`/tornei/${id}/sfide`}
-                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover"
-              >
-                Vai alle sfide
-              </Link>
-              <Link
-                href={`/tornei/${id}/impostazioni`}
-                className="rounded-lg border border-border-accent bg-surface px-4 py-2 text-sm font-medium text-accent-dark shadow-sm hover:bg-accent-subtle"
-              >
-                Aggiungi giocatore
-              </Link>
-              <button
-                onClick={applyRanking}
-                disabled={applying}
-                className="rounded-lg border border-border-accent bg-surface px-4 py-2 text-sm font-medium text-accent-dark shadow-sm hover:bg-accent-subtle disabled:opacity-50"
-              >
-                {applying ? "Aggiornamento..." : "Applica classifica"}
-              </button>
-            </div>
-          )}
+          <div className="flex flex-wrap gap-2">
+            <ExportRankingPdfButton
+              tournament={tournament}
+              entries={entries}
+            />
+            {isActive && (
+              <>
+                <Link
+                  href={`/tornei/${id}/gioca`}
+                  className="rounded-lg border border-border-accent bg-surface px-4 py-2 text-sm font-medium text-accent-dark shadow-sm hover:bg-accent-subtle"
+                >
+                  Vista giocatore
+                </Link>
+                <Link
+                  href={`/tornei/${id}/sfide`}
+                  className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover"
+                >
+                  Vai alle sfide
+                </Link>
+                <Link
+                  href={`/tornei/${id}/impostazioni`}
+                  className="rounded-lg border border-border-accent bg-surface px-4 py-2 text-sm font-medium text-accent-dark shadow-sm hover:bg-accent-subtle"
+                >
+                  Aggiungi giocatore
+                </Link>
+                <button
+                  onClick={applyRanking}
+                  disabled={applying}
+                  className="rounded-lg border border-border-accent bg-surface px-4 py-2 text-sm font-medium text-accent-dark shadow-sm hover:bg-accent-subtle disabled:opacity-50"
+                >
+                  {applying ? "Aggiornamento..." : "Applica classifica"}
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {tournament.status === "completed" && (

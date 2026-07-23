@@ -11,6 +11,14 @@ interface Props {
   onCreated: () => void;
 }
 
+function todayLocalDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function ChallengeForm({
   tournamentId,
   entries,
@@ -18,7 +26,7 @@ export default function ChallengeForm({
 }: Props) {
   const [challengerId, setChallengerId] = useState("");
   const [challengedId, setChallengedId] = useState("");
-  const [scheduledAt, setScheduledAt] = useState("");
+  const [scheduledAt, setScheduledAt] = useState(todayLocalDate);
   const [opponents, setOpponents] = useState<TournamentEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -62,7 +70,7 @@ export default function ChallengeForm({
       if (!res.ok) throw new Error(data.error);
       setChallengerId("");
       setChallengedId("");
-      setScheduledAt("");
+      setScheduledAt(todayLocalDate());
       setOpponents([]);
       onCreated();
     } catch (err) {
@@ -79,9 +87,9 @@ export default function ChallengeForm({
     >
       <h2 className="mb-4 text-lg font-semibold text-ink">Nuova sfida</h2>
       <p className="mb-4 text-sm text-ink-muted">
-        Lo sfidato accetta automaticamente. Indica la data di gioco: la sfida
-        entrerà nel calendario di quella settimana. La partita va giocata entro
-        2 settimane dalla lancio.
+        Lo sfidato accetta automaticamente. La data di gioco è impostata a oggi:
+        se serve, clicca sul campo e cambiala. La partita va giocata entro 2
+        settimane dal lancio.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -159,7 +167,8 @@ export default function ChallengeForm({
             required
           />
           <p className="mt-1 text-xs text-ink-muted">
-            La sfida verrà inserita nella settimana di gioco corrispondente
+            Impostata a oggi — clicca per modificarla se la partita è un altro
+            giorno
           </p>
         </div>
       </div>

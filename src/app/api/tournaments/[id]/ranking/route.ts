@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { cancelExpiredChallenges } from "@/lib/challenges";
 import {
   ADMIN_COOKIE,
   PLAYER_COOKIE,
@@ -15,7 +14,6 @@ import {
   getTournamentEntries,
   requireTournament,
 } from "@/lib/tournaments";
-import { maybeRunWeeklyUpdate } from "@/lib/ranking";
 
 export async function GET(
   _request: Request,
@@ -33,14 +31,13 @@ export async function GET(
       );
     }
 
-    await cancelExpiredChallenges(tournamentId);
-    const weekly = await maybeRunWeeklyUpdate(tournamentId);
-    const entries = attachMatchStatsToEntries(
-      await getTournamentEntries(tournamentId),
-      await getTournamentMatchStats(tournamentId)
-    );
+    const [entries, matchStats, jar] = await Promise.all([
+      getTournamentEntries(tournamentId),
+      getTournamentMatchStats(tournamentId),
+      cookies(),
+    ]);
 
-    const jar = await cookies();
+    const withStats = attachMatchStatsToEntries(entries, matchStats);
     const canViewPhones = await canViewSensitivePlayerData(
       jar.get(ADMIN_COOKIE)?.value,
       jar.get(PLAYER_COOKIE)?.value
@@ -48,8 +45,7 @@ export async function GET(
 
     return NextResponse.json({
       tournament,
-      entries: canViewPhones ? entries : redactEntryPhones(entries),
-      weeklyUpdate: weekly,
+      entries: canViewPhones ? withStats : redactEntryPhones(withStats),
     });
   } catch (e) {
     const message =
