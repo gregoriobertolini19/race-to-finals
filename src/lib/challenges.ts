@@ -56,7 +56,8 @@ export async function getTournamentChallenges(
 export async function validateChallenge(
   tournamentId: number,
   challengerId: number,
-  challengedId: number
+  challengedId: number,
+  options?: { adminOverride?: boolean }
 ): Promise<string | null> {
   if (challengerId === challengedId) {
     return "Non puoi sfidare te stesso";
@@ -80,6 +81,10 @@ export async function validateChallenge(
   }
   if (challenged.status === "in_challenge") {
     return "Il giocatore sfidato ha già una sfida in corso";
+  }
+
+  if (options?.adminOverride) {
+    return null;
   }
 
   if (!isWithinChallengeRange(challenger.position, challenged.position)) {
@@ -113,7 +118,8 @@ export async function createChallenge(
   tournamentId: number,
   challengerId: number,
   challengedId: number,
-  scheduledAt: string
+  scheduledAt: string,
+  options?: { adminOverride?: boolean }
 ): Promise<Challenge> {
   if (!scheduledAt?.trim()) {
     throw new Error("La data della partita è obbligatoria");
@@ -122,7 +128,8 @@ export async function createChallenge(
   const error = await validateChallenge(
     tournamentId,
     challengerId,
-    challengedId
+    challengedId,
+    options
   );
   if (error) throw new Error(error);
 

@@ -32,7 +32,8 @@ export async function POST(
       tournamentId,
       challengerId,
       challengedId,
-      scheduledAt
+      scheduledAt,
+      { adminOverride: true }
     );
     return NextResponse.json(challenge, { status: 201 });
   } catch (e) {

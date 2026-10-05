@@ -27,29 +27,33 @@ export default function ChallengeForm({
   const [challengerId, setChallengerId] = useState("");
   const [challengedId, setChallengedId] = useState("");
   const [scheduledAt, setScheduledAt] = useState(todayLocalDate);
-  const [opponents, setOpponents] = useState<TournamentEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const activeEntries = entries.filter((e) => e.status === "active");
-
-  const selectedOpponent = useMemo(
-    () => opponents.find((e) => String(e.player_id) === challengedId),
-    [opponents, challengedId]
+  const activeEntries = useMemo(
+    () =>
+      [...entries]
+        .filter((e) => e.status === "active")
+        .sort((a, b) => a.position - b.position),
+    [entries]
   );
 
-  async function loadOpponents(playerId: string) {
+  const challengedOptions = useMemo(
+    () =>
+      activeEntries.filter((e) => String(e.player_id) !== challengerId),
+    [activeEntries, challengerId]
+  );
+
+  const selectedOpponent = useMemo(
+    () =>
+      challengedOptions.find((e) => String(e.player_id) === challengedId) ??
+      null,
+    [challengedOptions, challengedId]
+  );
+
+  function selectChallenger(playerId: string) {
     setChallengerId(playerId);
-    setChallengedId("");
-    if (!playerId) {
-      setOpponents([]);
-      return;
-    }
-    const res = await fetch(
-      `/api/tournaments/${tournamentId}/players/${playerId}/opponents`
-    );
-    const data = await res.json();
-    setOpponents(data);
+    setChallengedId((current) => (current === playerId ? "" : current));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -71,7 +75,6 @@ export default function ChallengeForm({
       setChallengerId("");
       setChallengedId("");
       setScheduledAt(todayLocalDate());
-      setOpponents([]);
       onCreated();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore");
@@ -87,9 +90,9 @@ export default function ChallengeForm({
     >
       <h2 className="mb-4 text-lg font-semibold text-ink">Nuova sfida</h2>
       <p className="mb-4 text-sm text-ink-muted">
-        Lo sfidato accetta automaticamente. La data di gioco è impostata a oggi:
-        se serve, clicca sul campo e cambiala. La partita va giocata entro 2
-        settimane dal lancio.
+        Modalità admin: puoi creare sfide tra qualsiasi giocatore attivo, senza
+        limite di posizioni o del mese. La data è impostata a oggi — clicca per
+        cambiarla.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -99,7 +102,7 @@ export default function ChallengeForm({
           </label>
           <select
             value={challengerId}
-            onChange={(e) => loadOpponents(e.target.value)}
+            onChange={(e) => selectChallenger(e.target.value)}
             className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             required
           >
@@ -114,7 +117,7 @@ export default function ChallengeForm({
 
         <div>
           <label className="mb-1 block text-sm font-medium text-ink-secondary">
-            Sfidato (fino a 5 posizioni davanti)
+            Sfidato (qualsiasi giocatore)
           </label>
           <select
             value={challengedId}
@@ -124,7 +127,7 @@ export default function ChallengeForm({
             disabled={!challengerId}
           >
             <option value="">Seleziona...</option>
-            {opponents.map((e) => (
+            {challengedOptions.map((e) => (
               <option key={e.player_id} value={e.player_id}>
                 #{e.position} {displayPlayerName(e.name)}
                 {e.phone ? ` · ${e.phone}` : ""}
